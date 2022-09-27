@@ -67,13 +67,13 @@ const doUploadFile = _parms => {
             
             $.retakeButton.enabled = true;
             $.retakeButton.title = 'Re-copy';
-            $.retakeButton.image = $.retakeButton.customRecopyImage;
+            //$.retakeButton.image = $.retakeButton.customRecopyImage;
 
             activityIndicator.hide();
             $.uploadButton.remove(activityIndicator);
             $.uploadButton.enabled = true;
             $.uploadButton.title = 'Take another'; 
-            $.uploadButton.image = $.uploadButton.customRetakeImage; 
+            //$.uploadButton.image = $.uploadButton.customRetakeImage; 
         },
         onError: _e => {
             console.error(JSON.stringify(_e));
@@ -84,13 +84,13 @@ const doUploadFile = _parms => {
             $.messagesLabel.text = 'Error!\nCould not upload file.'
             
             $.retakeButton.enabled = true;
-            $.retakeButton.image = $.retakeButton.customRetakeImage;
+            //$.retakeButton.image = $.retakeButton.customRetakeImage;
             
             activityIndicator.hide();
             $.uploadButton.remove(activityIndicator);
             $.uploadButton.enabled = true;
             $.uploadButton.title = 'Retry'; 
-            $.uploadButton.image = $.uploadButton.customRetryImage; 
+            //$.uploadButton.image = $.uploadButton.customRetryImage; 
 
         }
     });
@@ -136,19 +136,22 @@ const configure = () => {
             outputFile = null;
         } else {
             // picture
-            let croppedW = _e.media.width > _e.media.height ? _e.media.height: _e.media.width;
-            let croppedH = croppedW;
-            console.warn('croppedW: '+croppedW+ ' croppedH: '+ croppedH + ' s: '+_e.media.size);
-            let croppedImage = _e.media.imageAsCropped({
-                width: croppedW, 
-                height: croppedH,
-                x: 0,
-                y: 0 
-            });
+            // let croppedW = _e.media.width > _e.media.height ? _e.media.height: _e.media.width;
+            // let croppedH = croppedW;
+            // console.warn('croppedW: '+croppedW+ ' croppedH: '+ croppedH + ' s: '+_e.media.size);
+            // let croppedImage = _e.media.imageAsCropped({
+            //     width: croppedW, 
+            //     height: croppedH,
+            //     x: 0,
+            //     y: 0 
+            // });
 
-            let newW = desiredSize.w;
-            let newH = desiredSize.h;
-            let resizedImage = croppedImage.imageAsResized(newW, newH);
+            let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
+            let newW = _e.media.width > _e.media.height ? desiredSize.w : desiredSize.h;
+            let newH = newW * ratio;
+            let resizedImage = _e.media.imageAsResized(newW, newH);
+
+            console.warn('ori w: '+_e.media.width+ ' h: '+ _e.media.height + ' bf s: '+_e.media.size);
             console.warn('new w: '+resizedImage.width+ ' h: '+ resizedImage.height + ' after s: '+resizedImage.size);
 
             var filename = 'photo_' + moment().format('YYYYMMDDhhmmss') + '.png';

@@ -1,6 +1,7 @@
 <Alloy>
     <Window id="win" navBarHidden="true">
         <View id="container">
+            <ImageView id="title" />
             <ImageView id="imagePreview" />
             <VideoPlayer id="videoPreview" ns="Ti.Media" />
             <View id="bottomContainer">

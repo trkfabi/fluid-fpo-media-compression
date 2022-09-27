@@ -1,10 +1,16 @@
 <Alloy>
     <View id="overlayContainer">
+        <View id="overlayTop">
+            <ImageView id="title" />
+        </View>
         <Label id="viewActivityLabel"/>
-        <View id="buttonsRow">
-            <Button id="flashToggleButton" />
-            <Button id="snapButton" />
-            <Button id="galleryButton" />
+        <View id="overlayBottom">
+            <Button id="mediaTypeButton" class="whiteButton"/>
+            <View id="buttonsRow">
+                <Button id="flashToggleButton" />
+                <Button id="snapButton" />
+                <Button id="galleryButton" />
+            </View>
         </View>
     </View>
 </Alloy>

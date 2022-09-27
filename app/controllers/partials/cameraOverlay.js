@@ -3,6 +3,7 @@ const args = $.args;
 const logProgram = 'partials/cameraOverlay';
 
 let snapButtonStatus = 'READY';    // DISABLED , RECORDING
+let isVideo = args.mediaType === Ti.Media.MEDIA_TYPE_PHOTO? false: true;
 
 const configure = () => {
     Alloy.Globals.doLog({
@@ -10,12 +11,23 @@ const configure = () => {
         program: logProgram
     });       
 }
-configure();
+
 
 const onViewActivityClick = () => {
     appNavigation.openActivity();
 }
 $.viewActivityLabel.addEventListener('click', onViewActivityClick);
+
+const onChangeMediaType = () => {
+    Alloy.Globals.doLog({
+        text: 'onChangeMediaType() isVideo: ' + isVideo,
+        program: logProgram
+    });       
+    args.onChangeMediaType();
+    isVideo = !isVideo;
+    $.mediaTypeButton.title = isVideo ? 'Switch to Photo' : 'Switch to Video';
+}
+$.mediaTypeButton.addEventListener('click', onChangeMediaType);
 
 const onFlashButtonClick = () => {
     Alloy.Globals.doLog({
@@ -34,7 +46,7 @@ const onSnapButtonClick = () => {
         text: 'onSnapButtonClick() snap status: ' + snapButtonStatus,
         program: logProgram
     });     
-    if (args.isVideo) {
+    if (isVideo) {
         if (snapButtonStatus === 'READY') {
             $.snapButton.backgroundImage = $.snapButton.customImageRecording;
             $.snapButton.enabled = true;
@@ -73,7 +85,7 @@ $.onCameraDone = () => {
         text: 'onCameraDone()',
         program: logProgram
     });     
-    if (args.isVideo) {
+    if (isVideo) {
 
     } else {
         $.snapButton.backgroundImage = $.snapButton.customImageEnabled;

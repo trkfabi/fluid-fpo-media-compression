@@ -3,19 +3,25 @@
     width: Ti.UI.FILL,
     backgroundColor: '#FFFFFF'
 }
-
+"#title": {
+    top: 60,
+    image: '/images/mainTitle.png',
+    width: 180,
+    height: 20
+}
 "#imagePreview": {
     top: 100,
     width: Ti.UI.SIZE,
     height: Ti.UI.SIZE,
-    visible: false     	
+    visible: false,
+    zIndex: 10
 }
 
 "#videoPreview": {
     top: 100,
-    autoplay: false,
-    width: Ti.Platform.displayCaps.platformWidth,
-    height: Ti.Platform.displayCaps.platformWidth,
+    autoplay: true,
+    width: Ti.UI.SIZE,
+    height: Ti.UI.SIZE,
     visible: false 	
 }
 
@@ -25,13 +31,14 @@
     right: 0,
     height: 200,
     backgroundColor: '#FFFFFF',
-    layout: 'vertical'	
+    layout: 'vertical',
+    zIndex: 20
 }
 "#bottomContainer[if=Alloy.Globals.hasNotch]": {
     bottom: 40
 }
 "#messagesLabel": {
-    top: 0,
+    top: 5,
     text: ' \n ',
     successColor: '#228B22',
     errorColor: '#DC143C'
@@ -48,7 +55,7 @@
     title: 'Upload',
     width: 300,
     height: 50,
-    top: 20,
+    top: 10,
     customRetakeImage: '/images/btnRetake.png',
     customRetryImage: null
 }

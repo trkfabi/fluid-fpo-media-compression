@@ -1,9 +1,9 @@
 const appNavigation = require('appNavigation');
-const api = require('api').api;
+const hapticFeedbackHelper = require('helpers/hapticFeedbackHelper');
 const logProgram = 'home/cameraScreen';
 const args = $.args;
 
-let activity = Alloy.Globals.activityHistory;
+let isRecording = false;
 
 const checkStoragePermissions = () => {
 
@@ -11,7 +11,7 @@ const checkStoragePermissions = () => {
         Ti.Android.requestPermissions("android.permission.WRITE_EXTERNAL_STORAGE", function (e) {
             if (e.success) {
                 $.cameraPermission.visible = false;
-                openCamera();                
+                openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);                
             } else {
                 $.cameraPermission.visible = true;
                 return false;
@@ -19,18 +19,20 @@ const checkStoragePermissions = () => {
         });
     } else {
         $.cameraPermission.visible = false;
-        openCamera(); 
+        openCamera(Titanium.Media.MEDIA_TYPE_PHOTO); 
     }
 };
 
-const openCamera = () => {
+const openCamera = (_mediaType) => {
+    _mediaType = _mediaType || Ti.Media.MEDIA_TYPE_PHOTO;
     Alloy.Globals.doLog({
-        text: 'openCamera()',
+        text: 'openCamera() type: '+_mediaType,
         program: logProgram
     });      
+
     let cameraOverlayController = Alloy.createController('partials/cameraOverlay', {
+        mediaType: _mediaType,
         onFlashToggle: () => {
-            console.warn('Ti.Media.cameraFlashMode: ' + Ti.Media.cameraFlashMode);
             if (Ti.Media.cameraFlashMode === Ti.Media.CAMERA_FLASH_ON) {
                 Ti.Media.cameraFlashMode = Ti.Media.CAMERA_FLASH_OFF;
             } else {
@@ -38,7 +40,17 @@ const openCamera = () => {
             }
         },
         onSnap: () => {
-            Ti.Media.takePicture();
+            hapticFeedbackHelper.impact();
+            if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
+                Ti.Media.takePicture();
+            } else {
+                if (isRecording) {
+                    Ti.Media.stopVideoCapture();                    
+                } else {
+                    Ti.Media.startVideoCapture(); 
+                }
+                isRecording = !isRecording;
+            }
         },
         onGallery: () => {
             if (Ti.Media.hasPhotoGalleryPermissions()) {
@@ -51,10 +63,19 @@ const openCamera = () => {
                     openGallery();
                 });
             }
+        },
+        onChangeMediaType: () => {
+            if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
+                _mediaType = Titanium.Media.MEDIA_TYPE_VIDEO;
+            } else {
+                _mediaType = Titanium.Media.MEDIA_TYPE_PHOTO;
+            }
+            Ti.Media.hideCamera();
+            openCamera(_mediaType);
         }
     });
 
-    var transformTranslate = Ti.UI.createMatrix2D().translate(0, 100);
+    var transformTranslate = Ti.UI.createMatrix2D().translate(0, 100);//.scale(1, 0.745);
     Ti.Media.showCamera({
         cameraFlashMode: Ti.Media.CAMERA_FLASH_OFF,
         showControls: false,
@@ -62,7 +83,7 @@ const openCamera = () => {
         allowEditing: false,
         autohide: false,
         allowMultiple: false,
-        mediaTypes: [Titanium.Media.MEDIA_TYPE_PHOTO], //Titanium.Media.MEDIA_TYPE_VIDEO, 
+        mediaTypes: _mediaType && _mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? [Ti.Media.MEDIA_TYPE_PHOTO]: [Ti.Media.MEDIA_TYPE_VIDEO], //Titanium.Media.MEDIA_TYPE_VIDEO, 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
         transform: transformTranslate,
@@ -72,7 +93,9 @@ const openCamera = () => {
             Ti.Media.hideCamera();
             appNavigation.openPostProcess({
                 data: _e,
-                onRetake: checkCameraPermissions
+                onRetake: function() {
+                    openCamera(_mediaType);
+                }
             });
         },
         error: _e => {
@@ -93,18 +116,23 @@ const openGallery = () => {
         allowEditing: false,
         autohide: true,
         allowMultiple: false,
-        mediaTypes: [Titanium.Media.MEDIA_TYPE_PHOTO], //Titanium.Media.MEDIA_TYPE_VIDEO, 
+        mediaTypes: [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO], 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
         success: _e => {
             console.error('openPhotoGallery success: ' + JSON.stringify(_e));
             appNavigation.openPostProcess({
                 data: _e,
-                onRetake: checkCameraPermissions
+                onRetake: function() {
+                    openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
+                }
             });
         },
         error: _e => {
             console.error('openPhotoGallery error: ' +JSON.stringify(_e));
+        },
+        cancel: ()=>{
+            openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
         }
     });     
 }
@@ -113,7 +141,7 @@ const checkCameraPermissions = () => {
     if (OS_IOS) {
         if (Ti.Media.hasCameraPermissions() && Ti.Media.hasAudioRecorderPermissions()) {
             $.cameraPermission.visible = false;
-            openCamera();
+            openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
         } else {
             Ti.Media.requestCameraPermissions(function (event) {
                 if (!event.success) {
@@ -125,7 +153,7 @@ const checkCameraPermissions = () => {
                         $.cameraPermission.visible = true;
                         return false;
                     }
-                    openCamera();
+                    openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
                 });
             });
         }
