@@ -32,6 +32,7 @@ const openCamera = (_mediaType) => {
 
     let cameraOverlayController = Alloy.createController('partials/cameraOverlay', {
         mediaType: _mediaType,
+        cameraFlashMode: Ti.Media.CAMERA_FLASH_OFF,
         onFlashToggle: () => {
             if (Ti.Media.cameraFlashMode === Ti.Media.CAMERA_FLASH_ON) {
                 Ti.Media.cameraFlashMode = Ti.Media.CAMERA_FLASH_OFF;
@@ -66,6 +67,8 @@ const openCamera = (_mediaType) => {
         },
         onChangeMediaType: () => {
             if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
+                alert('Video upload not supported yet');
+                return false;
                 _mediaType = Titanium.Media.MEDIA_TYPE_VIDEO;
             } else {
                 _mediaType = Titanium.Media.MEDIA_TYPE_PHOTO;

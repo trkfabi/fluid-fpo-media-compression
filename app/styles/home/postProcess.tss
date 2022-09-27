@@ -1,3 +1,6 @@
+"#win": {
+    backgroundColor: '#FFFFFF'
+}
 "#container": {
     height: Ti.UI.FILL,
     width: Ti.UI.FILL,
@@ -20,9 +23,10 @@
 "#videoPreview": {
     top: 100,
     autoplay: true,
-    width: Ti.UI.SIZE,
-    height: Ti.UI.SIZE,
-    visible: false 	
+    width: Ti.Platform.displayCaps.platformWidth,
+    height: Ti.Platform.displayCaps.platformWidth,
+    visible: false,
+    zIndex: 10	
 }
 
 "#bottomContainer": {
@@ -35,7 +39,7 @@
     zIndex: 20
 }
 "#bottomContainer[if=Alloy.Globals.hasNotch]": {
-    bottom: 40
+    height: 240
 }
 "#messagesLabel": {
     top: 5,

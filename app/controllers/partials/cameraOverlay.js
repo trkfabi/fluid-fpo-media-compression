@@ -10,8 +10,10 @@ const configure = () => {
         text: 'configure()',
         program: logProgram
     });       
+    $.mediaTypeButton.title = args.mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? 'Switch to Video' : 'Switch to Photo';
+    $.flashToggleButton.backgroundImage = Ti.Media.cameraFlashMode === Ti.Media.CAMERA_FLASH_ON ? $.flashToggleButton.customImageEnabled: $.flashToggleButton.customImageDisabled;
 }
-
+configure();
 
 const onViewActivityClick = () => {
     appNavigation.openActivity();
@@ -24,8 +26,6 @@ const onChangeMediaType = () => {
         program: logProgram
     });       
     args.onChangeMediaType();
-    isVideo = !isVideo;
-    $.mediaTypeButton.title = isVideo ? 'Switch to Photo' : 'Switch to Video';
 }
 $.mediaTypeButton.addEventListener('click', onChangeMediaType);
 
@@ -46,7 +46,7 @@ const onSnapButtonClick = () => {
         text: 'onSnapButtonClick() snap status: ' + snapButtonStatus,
         program: logProgram
     });     
-    if (isVideo) {
+    if (args.mediaType === Ti.Media.MEDIA_TYPE_VIDEO) {
         if (snapButtonStatus === 'READY') {
             $.snapButton.backgroundImage = $.snapButton.customImageRecording;
             $.snapButton.enabled = true;
@@ -85,7 +85,7 @@ $.onCameraDone = () => {
         text: 'onCameraDone()',
         program: logProgram
     });     
-    if (isVideo) {
+    if (args.mediaType === Ti.Media.MEDIA_TYPE_VIDEO) {
 
     } else {
         $.snapButton.backgroundImage = $.snapButton.customImageEnabled;
