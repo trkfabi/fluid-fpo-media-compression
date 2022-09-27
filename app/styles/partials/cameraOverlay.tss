@@ -1,0 +1,58 @@
+"#overlayContainer":{
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0
+}
+"#overlayTop":{
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: '#FFFFFF'
+}
+"#overlayBottom":{
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: Ti.UI.SIZE,
+    backgroundColor: '#FFFFFF'
+}
+"#viewActivityLabel": {
+    color: '#FFFFFF',
+    text: 'View activity',
+    textAlign: 'right',
+    top: 0,
+    font: {
+        fontSize: 20
+    },
+    visible: false
+}
+"#buttonsRow": {
+    bottom: 40,
+    left: 0,
+    right: 0,
+    height: 200
+}
+"#flashToggleButton": {
+    left: 30,
+    backgroundImage: '/images/btnFlashDisabled.png',
+    customImageEnabled: '/images/btnFlashEnabled.png',
+    customImageDisabled: '/images/btnFlashDisabled.png',
+    height: 50,
+    width: 50
+}
+"#snapButton": {
+    backgroundImage: '/images/btnCameraEnabled.png',
+    customImageDisabled: '/images/btnCameraEnabled.png',
+    customImageDisabled: '/images/btnCameraDisabled.png',
+    customImageRecording: '/images/btnCameraRecording.png',
+    height: 90,
+    width: 90    	
+}
+"#galleryButton": {
+    right: 30,
+    image: '/images/btnGallery.png',
+    height: 50,
+    width: 50    
+}

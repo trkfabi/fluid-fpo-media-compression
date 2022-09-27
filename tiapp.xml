@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ti:app xmlns:ti="http://ti.appcelerator.org">
+	<id>com.fluidmarket.mediacompression</id>
+	<name>Fluid LTs</name>
+	<version>1.0.0.0</version>
+	<publisher>not specified</publisher>
+	<url>http://inzori.com</url>
+	<description/>
+	<copyright>not specified</copyright>
+	<icon>appicon.png</icon>
+	<fullscreen>false</fullscreen>
+	<navbar-hidden>false</navbar-hidden>
+	<guid>a5995cbc-8f58-4db7-87e1-7e4ddc83ee27</guid>
+	<property name="ti.ui.defaultunit" type="string">dp</property>
+	<property name="run-on-main-thread" type="bool">true</property>
+	<ios>
+		<enable-launch-screen-storyboard>true</enable-launch-screen-storyboard>
+		<default-background-color>#FFFFFF</default-background-color>
+		<use-app-thinning>true</use-app-thinning>
+		<plist>
+			<dict>
+				<key>UIUserInterfaceStyle</key>
+				<string>Light</string>			
+				<key>UISupportedInterfaceOrientations~iphone</key>
+				<array>
+					<string>UIInterfaceOrientationPortrait</string>
+				</array>
+				<key>UISupportedInterfaceOrientations~ipad</key>
+				<array>
+					<string>UIInterfaceOrientationPortrait</string>
+					<string>UIInterfaceOrientationPortraitUpsideDown</string>
+					<string>UIInterfaceOrientationLandscapeLeft</string>
+					<string>UIInterfaceOrientationLandscapeRight</string>
+				</array>
+				<key>UIRequiresPersistentWiFi</key>
+				<false/>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+				<key>UIStatusBarHidden</key>
+				<false/>
+				<key>UIStatusBarStyle</key>
+				<string>UIStatusBarStyleDefault</string>
+				<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+				<string>To display available vehicles near you and for vehicle and user security.</string>
+				<key>NSLocationWhenInUseUsageDescription</key>
+				<string>To display available vehicles near you and for vehicle and user security.</string>
+				<key>NSLocationAlwaysUsageDescription</key>
+				<string>To display available vehicles near you and for vehicle and user security.</string>
+				<key>NSCameraUsageDescription</key>
+				<string>To record footage of your items</string>
+				<key>NSBluetoothPeripheralUsageDescription</key>
+				<string>To connect to tracking devices</string>
+				<key>NSPhotoLibraryUsageDescription</key>
+				<string>To select pictures of items you want to upload</string>
+				<key>NSPhotoLibraryAddUsageDescription</key>
+				<string>To select pictures of items you want to upload</string>				
+				<key>NSMicrophoneUsageDescription</key>
+				<string>To record footage of your items</string>
+				<key>NSCalendarsUsageDescription</key>
+				<string>To synch with your calendar</string>
+				<key>NSAppleMusicUsageDescription</key>
+				<string>To let you play music while using Fluid</string>
+				<key>NSFaceIDUsageDescription</key>
+				<string>Enabling Face ID allows quick and secure access to your account.</string>				
+			</dict>
+		</plist>
+	</ios>
+	<android xmlns:android="http://schemas.android.com/apk/res/android">
+		<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1">
+		</manifest>
+	</android>
+	<modules>
+
+	</modules>
+	<deployment-targets>
+		<target device="android">true</target>
+		<target device="ipad">true</target>
+		<target device="iphone">true</target>
+	</deployment-targets>
+	<sdk-version>11.0.0.GA_LTsApp</sdk-version>
+<plugins><plugin version="1.0">ti.alloy</plugin>
+</plugins>
+</ti:app>

@@ -1,0 +1,54 @@
+"#container": {
+    height: Ti.UI.FILL,
+    width: Ti.UI.FILL,
+    backgroundColor: '#FFFFFF'
+}
+
+"#imagePreview": {
+    top: 100,
+    width: Ti.UI.SIZE,
+    height: Ti.UI.SIZE,
+    visible: false     	
+}
+
+"#videoPreview": {
+    top: 100,
+    autoplay: false,
+    width: Ti.Platform.displayCaps.platformWidth,
+    height: Ti.Platform.displayCaps.platformWidth,
+    visible: false 	
+}
+
+"#bottomContainer": {
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+    backgroundColor: '#FFFFFF',
+    layout: 'vertical'	
+}
+"#bottomContainer[if=Alloy.Globals.hasNotch]": {
+    bottom: 40
+}
+"#messagesLabel": {
+    top: 0,
+    text: ' \n ',
+    successColor: '#228B22',
+    errorColor: '#DC143C'
+}
+"#retakeButton": {
+    title: 'Retake',
+    width: 300,
+    height: 50,
+    top: 20,
+    customRecopyImage: '/images/btnClipboard.png',
+    customRetakeImage: null
+}
+"#uploadButton": {
+    title: 'Upload',
+    width: 300,
+    height: 50,
+    top: 20,
+    customRetakeImage: '/images/btnRetake.png',
+    customRetryImage: null
+}

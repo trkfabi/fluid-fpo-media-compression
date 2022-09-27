@@ -1,0 +1,15 @@
+<Alloy>
+    <Window id="win" navBarHidden="true">
+        <View id="container">
+            <ImageView id="imagePreview" />
+            <VideoPlayer id="videoPreview" ns="Ti.Media" />
+            <View id="bottomContainer">
+                <Label id="messagesLabel" class="messages"/>
+                <Button id="retakeButton" class="whiteButton" />
+                <Button id="uploadButton" class="blueButton"/>
+                
+            </View>
+
+        </View>
+    </Window>
+</Alloy>

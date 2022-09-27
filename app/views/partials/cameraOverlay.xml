@@ -1,0 +1,10 @@
+<Alloy>
+    <View id="overlayContainer">
+        <Label id="viewActivityLabel"/>
+        <View id="buttonsRow">
+            <Button id="flashToggleButton" />
+            <Button id="snapButton" />
+            <Button id="galleryButton" />
+        </View>
+    </View>
+</Alloy>

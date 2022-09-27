@@ -1,0 +1,7 @@
+<Alloy>
+    <Window id="win" navBarHidden="true">
+        <View id="container">
+            <Label id="cameraPermission" />
+        </View>
+    </Window>
+</Alloy>

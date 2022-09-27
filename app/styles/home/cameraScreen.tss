@@ -1,0 +1,14 @@
+"#container": {
+    height: Ti.UI.FILL,
+    width: Ti.UI.FILL,
+    backgroundColor: '#FFFFFF'
+}
+"#cameraPermission": {
+    text: 'No camera permission. Tap here.',
+    textAlign: 'center',
+    color: '#000000',
+    font: {
+        fontSize: 18
+    },
+    visible: false
+}
