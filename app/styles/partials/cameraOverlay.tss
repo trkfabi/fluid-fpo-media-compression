@@ -24,15 +24,12 @@
     height: 240,
     backgroundColor: '#FFFFFF'
 }
-"#viewActivityLabel": {
-    color: '#FFFFFF',
-    text: 'View activity',
-    textAlign: 'right',
-    top: 0,
-    font: {
-        fontSize: 20
-    },
-    visible: false
+"#historyButton": {
+    bottom: 10,
+    right: 10,
+    backgroundImage: '/images/btnHistory.png',
+    height: 30,
+    width: 30
 }
 "#mediaTypeButton": {
     title: 'Switch to Video',
@@ -65,7 +62,7 @@
 }
 "#galleryButton": {
     right: 30,
-    image: '/images/btnGallery.png',
+    backgroundImage: '/images/btnGallery.png',
     height: 50,
     width: 50    
 }

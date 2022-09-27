@@ -1,0 +1,10 @@
+<Alloy>
+    <TableViewRow id="row">
+        <View id="containerRow">
+            <ImageView id="imageRow" />
+            <Label id="timestampRow" />
+            <Label id="statusRow" />
+            <Label id="urlRow" />
+        </View>
+    </TableViewRow>
+</Alloy>

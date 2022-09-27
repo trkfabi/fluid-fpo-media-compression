@@ -14,5 +14,6 @@
 "#activityTableview":{
     top: 30,
     height: Ti.UI.SIZE,
-    width: Ti.UI.FILL
+    width: Ti.UI.FILL,
+    resultsSeparatorStyle: Titanium.UI.TABLE_VIEW_SEPARATOR_STYLE_SINGLE_LINE
 }

@@ -1,4 +1,3 @@
-
 const logProgram = 'lib/appNavigation';
 const logColor = 'blue';
 const logType = 'info';

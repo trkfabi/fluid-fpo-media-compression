@@ -433,29 +433,6 @@
         return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
     };
 
-	apiDomain.authentication.login = _args => {
-        _args.url = Alloy.Globals.baseURL + "/sessions";
-        _args.authenticated = false;
-        _args.method = 'POST';
-
-		const postData = {
-			data: {
-				type: "user",
-				attributes: {
-					email: Alloy.Globals.isInSandboxMode ? 'test2830@mailinator.com': 'fmartinez2006@gmail.com',
-					password: Alloy.Globals.isInSandboxMode ? 'truckyeah': 'truckyeah',
-					"device-token": '',
-					"device-type": OS_IOS ? "ios" : "android",
-					"device-id": ''
-				},
-			},
-		};
-
-        _args.req = postData;
-
-        return request(_args);		
-	};
-
     apiDomain.media.upload = _args => {
         let required = ['media'];
 

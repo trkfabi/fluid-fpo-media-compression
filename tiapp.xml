@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ti:app xmlns:ti="http://ti.appcelerator.org">
 	<id>com.fluidmarket.mediacompression</id>
-	<name>Fluid LTs</name>
-	<version>1.0.0.0</version>
+	<name>FPOs Upload</name>
+	<version>1.0.0.1</version>
 	<publisher>not specified</publisher>
 	<url>http://inzori.com</url>
 	<description/>

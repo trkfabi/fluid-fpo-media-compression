@@ -7,24 +7,12 @@ console.warn('activity: ' + JSON.stringify(activity));
 const configure = () => {
     let rows = [];
     activity.forEach( (item, index) => {
-        console.warn(item);
-        let row = Ti.UI.createTableViewRow({
-            className: 'row'
+        let rowController = Alloy.createController('partials/activityHistoryRow', {
+            item: item,
+            index: index
         });
-        let rowView = Ti.UI.createView({
-            height: 50,
-            width: Ti.UI.FILL
-        });
-        let sampleLabel = Ti.UI.createLabel({
-            text: `${item.date} | ${item.type} | ${item.status} | ${item.url}`,
-            color: '#000000',
-            textAlign: 'left',
-            left: 20,
-            right: 20,
-            height: Ti.UI.SIZE
-        });
-        rowView.add(sampleLabel);
-        row.add(rowView);
+
+        let row = rowController.getView();
         rows.push(row);
     });
     $.activityTableview.data = rows;

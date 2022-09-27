@@ -6,7 +6,10 @@ const args = $.args;
 let isRecording = false;
 
 const checkStoragePermissions = () => {
-
+    Alloy.Globals.doLog({
+        text: 'checkStoragePermissions()',
+        program: logProgram
+    }); 
     if (!Ti.Android.hasPermission("android.permission.WRITE_EXTERNAL_STORAGE")) {
         Ti.Android.requestPermissions("android.permission.WRITE_EXTERNAL_STORAGE", function (e) {
             if (e.success) {
@@ -91,7 +94,10 @@ const openCamera = (_mediaType) => {
         videoQuality: Ti.Media.QUALITY_MEDIUM,
         transform: transformTranslate,
         success: _e => {
-            console.error('showCamera success: ' + JSON.stringify(_e));
+            Alloy.Globals.doLog({
+                text: 'Camera success: ' + JSON.stringify(_e),
+                program: logProgram
+            }); 
             cameraOverlayController.onCameraDone();
             Ti.Media.hideCamera();
             appNavigation.openPostProcess({
@@ -103,7 +109,10 @@ const openCamera = (_mediaType) => {
         },
         error: _e => {
             cameraOverlayController.onCameraDone();
-            console.error('showCamera error: ' +JSON.stringify(_e));
+            Alloy.Globals.doLog({
+                text: 'Camera error: ' + JSON.stringify(_e),
+                program: logProgram
+            }); 
         }
     });    
 };
@@ -123,7 +132,10 @@ const openGallery = () => {
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
         success: _e => {
-            console.error('openPhotoGallery success: ' + JSON.stringify(_e));
+            Alloy.Globals.doLog({
+                text: 'Gallery success: ' + JSON.stringify(_e),
+                program: logProgram
+            });             
             appNavigation.openPostProcess({
                 data: _e,
                 onRetake: function() {
@@ -132,15 +144,26 @@ const openGallery = () => {
             });
         },
         error: _e => {
-            console.error('openPhotoGallery error: ' +JSON.stringify(_e));
+            Alloy.Globals.doLog({
+                text: 'Gallery error: ' + JSON.stringify(_e),
+                program: logProgram
+            }); 
         },
-        cancel: ()=>{
+        cancel: _e => {
+            Alloy.Globals.doLog({
+                text: 'Gallery cancel: ' + JSON.stringify(_e),
+                program: logProgram
+            });             
             openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
         }
     });     
 }
 
 const checkCameraPermissions = () => {
+    Alloy.Globals.doLog({
+        text: 'checkCameraPermissions()',
+        program: logProgram
+    });        
     if (OS_IOS) {
         if (Ti.Media.hasCameraPermissions() && Ti.Media.hasAudioRecorderPermissions()) {
             $.cameraPermission.visible = false;

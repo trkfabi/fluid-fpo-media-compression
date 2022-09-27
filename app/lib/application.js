@@ -1,6 +1,4 @@
 const appNavigation = require('appNavigation');
-const helper = require('helpers/helper');
-
 const logProgram = 'lib/application';
 const logColor = 'blue';
 const logType = 'info';

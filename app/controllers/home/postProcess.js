@@ -1,11 +1,9 @@
 const moment = require('alloy/moment');
-const helper = require('helpers/helper');
 const api = require('api').api;
 const logProgram = 'home/postProcess';
 const args = $.args;
 
 let activity = Alloy.Globals.activityHistory;
-console.warn('activity: ' + JSON.stringify(activity));
 
 let postProcessedFile = {};
 let desiredSize = {
@@ -16,13 +14,17 @@ let state = 'ready'; // uploading , done
 
 const activityIndicator = Ti.UI.createActivityIndicator({
     color: '#FFFFFF',
-    style: Ti.UI.ActivityIndicatorStyle.DARK,
-    left: 30,
+    style: Ti.UI.ActivityIndicatorStyle.PLAIN,
+    left: 40,
     height: Ti.UI.SIZE,
     width: Ti.UI.SIZE
 });
 
 const doUploadFile = _parms => {
+    Alloy.Globals.doLog({
+        text: 'doUploadFile()',
+        program: logProgram
+    });       
 	let uploadFile  = Ti.Filesystem.getFile(postProcessedFile.url);
     let fileSize = null;
 	if (!uploadFile.exists()){ 
@@ -43,11 +45,15 @@ const doUploadFile = _parms => {
     api.media.upload({
         media: uploadFile,
         onSuccess: _e => {
-            console.log(JSON.stringify(_e));
+            Alloy.Globals.doLog({
+                text: 'Upload success: ' + JSON.stringify(_e),
+                program: logProgram
+            });
             state = 'done';
-            
+            // large-sq is 1024x1024
+            // url is 640x640
             let activityItem = {
-                url: _e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes.url,
+                url: _e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
                 file: postProcessedFile.url,
                 size: fileSize + ' Mb',
                 type: postProcessedFile.type,
@@ -76,7 +82,10 @@ const doUploadFile = _parms => {
             //$.uploadButton.image = $.uploadButton.customRetakeImage; 
         },
         onError: _e => {
-            console.error(JSON.stringify(_e));
+            Alloy.Globals.doLog({
+                text: 'Upload error: ' + JSON.stringify(_e),
+                program: logProgram
+            });
             state = 'error';
             Ti.UI.Clipboard.clearText();
 
@@ -98,18 +107,22 @@ const doUploadFile = _parms => {
 };
 
 const configure = () => {
+    Alloy.Globals.doLog({
+        text: 'configure()',
+        program: logProgram
+    });    
     $.retakeButton.enabled = false;
     $.uploadButton.enabled = false;
 
     const _e = args.data;
-    console.warn(JSON.stringify(_e));
+
     if (_e.success) {
         if(_e.mediaType === 'public.movie') {           
             var filename = 'movie_' + moment().format('YYYYMMDDhhmmss') + '.mov';
             var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
             if (!outputFile.write(_e.media)) {
                 // handle write error
-                console.error('could not write');
+                console.error('Error: could not write video data to a file');
             }
             
             if(OS_IOS) {
@@ -151,14 +164,14 @@ const configure = () => {
             let newH = newW * ratio;
             let resizedImage = _e.media.imageAsResized(newW, newH);
 
-            console.warn('ori w: '+_e.media.width+ ' h: '+ _e.media.height + ' bf s: '+_e.media.size);
-            console.warn('new w: '+resizedImage.width+ ' h: '+ resizedImage.height + ' after s: '+resizedImage.size);
+            // console.warn('ori w: '+_e.media.width+ ' h: '+ _e.media.height + ' bf s: '+_e.media.size);
+            // console.warn('new w: '+resizedImage.width+ ' h: '+ resizedImage.height + ' after s: '+resizedImage.size);
 
             var filename = 'photo_' + moment().format('YYYYMMDDhhmmss') + '.png';
             var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
             if (!outputFile.write(resizedImage)) {
                 // handle write error
-                console.error('could not write');
+                console.error('Error: could not write photo data to a file');
             }               
             $.imagePreview.visible = true;
             $.imagePreview.image = resizedImage;
@@ -176,6 +189,10 @@ const configure = () => {
 configure();
 
 const onUploadButtonClick = () => {
+    Alloy.Globals.doLog({
+        text: 'onUploadButtonClick()',
+        program: logProgram
+    });      
     if (state === 'done') {
         // retake
         args.onRetake && args.onRetake();
@@ -185,6 +202,10 @@ const onUploadButtonClick = () => {
     }
 };
 const onRetakeButtonClick = () => {
+    Alloy.Globals.doLog({
+        text: 'onRetakeButtonClick()',
+        program: logProgram
+    });      
     if (state === 'done') {
         // recopy
         Ti.UI.Clipboard.clearText();

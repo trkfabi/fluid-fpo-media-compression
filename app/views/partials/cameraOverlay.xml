@@ -2,8 +2,8 @@
     <View id="overlayContainer">
         <View id="overlayTop">
             <ImageView id="title" />
+            <Button id="historyButton" />
         </View>
-        <Label id="viewActivityLabel"/>
         <View id="overlayBottom">
             <Button id="mediaTypeButton" class="whiteButton"/>
             <View id="buttonsRow">

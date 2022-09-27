@@ -15,14 +15,18 @@ const configure = () => {
 }
 configure();
 
-const onViewActivityClick = () => {
+const onHistoryClick = () => {
+    Alloy.Globals.doLog({
+        text: 'onHistoryClick()',
+        program: logProgram
+    });            
     appNavigation.openActivity();
 }
-$.viewActivityLabel.addEventListener('click', onViewActivityClick);
+$.historyButton.addEventListener('click', onHistoryClick);
 
 const onChangeMediaType = () => {
     Alloy.Globals.doLog({
-        text: 'onChangeMediaType() isVideo: ' + isVideo,
+        text: 'onChangeMediaType()',
         program: logProgram
     });       
     args.onChangeMediaType();

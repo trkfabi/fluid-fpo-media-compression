@@ -3,9 +3,6 @@ Alloy.Globals.isInSandboxMode = true;
 Alloy.Globals.authorizationTokenV2 = '';
 Alloy.Globals.refreshTokenV2 = '';
 
-Alloy.Globals.baseURL = Alloy.Globals.isInSandboxMode ? "https://api.stage.fluidmarket.com" :
-	"https://api.production.fluidmarket.com";
-
 Alloy.Globals.deviceHeight = OS_IOS ? Ti.Platform.displayCaps.platformHeight : (Ti.Platform.displayCaps.platformHeight /
 	Ti.Platform.displayCaps.logicalDensityFactor);
 Alloy.Globals.deviceWidth = OS_IOS ? Ti.Platform.displayCaps.platformWidth : (Ti.Platform.displayCaps.platformWidth /
