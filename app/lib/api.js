@@ -212,7 +212,7 @@
 				 program: logProgram,
 				 color: logColor
 			 });
-			 _params.Error && _args.onError({
+			 onError && onError({
 				 status: 'fail',
 				 messages: [
 					 'No internet connection'

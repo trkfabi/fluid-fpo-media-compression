@@ -70,16 +70,29 @@ const openCamera = (_mediaType) => {
         },
         onChangeMediaType: () => {
             if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
-                alert('Video upload not supported yet');
-                return false;
+                if (!Alloy.Globals.allowVideoFiles) {
+                    alert('Video upload not supported yet');
+                    return false;
+                }
                 _mediaType = Titanium.Media.MEDIA_TYPE_VIDEO;
             } else {
                 _mediaType = Titanium.Media.MEDIA_TYPE_PHOTO;
             }
             Ti.Media.hideCamera();
             openCamera(_mediaType);
+        },
+        onHistory: () => {
+            Ti.Media.hideCamera();
+            appNavigation.openActivity({
+                onClose: openCamera
+            });            
         }
     });
+
+    Alloy.Globals.doLog({
+        text: 'overlay created',
+        program: logProgram
+    });  
 
     var transformTranslate = Ti.UI.createMatrix2D().translate(0, 100);//.scale(1, 0.745);
     Ti.Media.showCamera({
@@ -128,7 +141,7 @@ const openGallery = () => {
         allowEditing: false,
         autohide: true,
         allowMultiple: false,
-        mediaTypes: [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO], 
+        mediaTypes: Alloy.Globals.allowVideoFiles ? [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO]: [Titanium.Media.MEDIA_TYPE_PHOTO], 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
         success: _e => {

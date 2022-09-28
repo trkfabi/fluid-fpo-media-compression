@@ -12,6 +12,10 @@ const configure = () => {
     });       
     $.mediaTypeButton.title = args.mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? 'Switch to Video' : 'Switch to Photo';
     $.flashToggleButton.backgroundImage = Ti.Media.cameraFlashMode === Ti.Media.CAMERA_FLASH_ON ? $.flashToggleButton.customImageEnabled: $.flashToggleButton.customImageDisabled;
+    Alloy.Globals.doLog({
+        text: 'configure() - ended',
+        program: logProgram
+    });       
 }
 configure();
 
@@ -20,7 +24,7 @@ const onHistoryClick = () => {
         text: 'onHistoryClick()',
         program: logProgram
     });            
-    appNavigation.openActivity();
+    args.onHistory();
 }
 $.historyButton.addEventListener('click', onHistoryClick);
 

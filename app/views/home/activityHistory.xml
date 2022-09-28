@@ -1,8 +1,0 @@
-<Alloy>
-    <Window id="win" navBarHidden="true">
-        <View id="container">
-            <Label id="closeLabel" class="messages"/>
-            <TableView id="activityTableview" />
-        </View>
-    </Window>
-</Alloy>

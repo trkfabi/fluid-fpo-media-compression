@@ -20,6 +20,62 @@ var alertDialogHelper = (function () {
 		defaultTitle = _title || '';
 	}
 
+	function createTemporalMessage(_params) {
+		_params = _params || {};
+		_params.message = _params.message || '';
+		_params.backgroundColor = _params.backgroundColor || '#CCCCCC';
+		_params.color = _params.color || '#000000';
+		_params.duration = _params.duration || 3000;
+		_params.font = _params.font || {
+			fontSize: 16
+		};
+		_params.opacity = _params.opacity || 1;
+
+		var view = Ti.UI.createView({
+			height: Ti.UI.SIZE,
+			left: 50,
+			right: 50,
+			backgroundColor: _params.backgroundColor,
+			borderRadius: 10,
+			layout: 'vertical'	,
+			opacity: _params.opacity		
+		});
+		var separatorTop = Ti.UI.createView({
+			top: 0,
+			height: 30,
+			width: Ti.UI.FILL
+		});
+		var separatorBottom = Ti.UI.createView({
+			top: 0,
+			height: 30,
+			width: Ti.UI.FILL
+		});		
+		var label = Ti.UI.createLabel({
+			top: 0,
+			text: _params.message,
+			height: Ti.UI.SIZE,			
+			left: 10, 
+			right: 10,
+			color: _params.color,
+			font: _params.font,
+			textAlign: 'center'
+		});
+		if (_params.hasOwnProperty('top')) {
+			view.top = _params.top;
+		} else if (_params.hasOwnProperty('bottom')) {
+			view.bottom = _params.bottom;
+		}
+		var win = Ti.UI.createWindow({
+			backgroundColor: 'transparent'
+		});
+		view.add(separatorTop);
+		view.add(label);
+		view.add(separatorBottom);
+		win.add(view);
+		win.open();
+
+		setTimeout(win.close, _params.duration);
+	}
 	/*
 	 * @method createAlertDialog
 	 * Creates an alert dialog
@@ -118,7 +174,9 @@ var alertDialogHelper = (function () {
 
 		createAlertDialog: createAlertDialog,
 		createConfirmDialog: createConfirmDialog,
-		createOptionDialog: createOptionDialog
+		createOptionDialog: createOptionDialog,
+
+		createTemporalMessage: createTemporalMessage
 	};
 })();
 

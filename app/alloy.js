@@ -1,3 +1,6 @@
+// SUPPORT VIDEO OR NOT
+Alloy.Globals.allowVideoFiles = false;
+
 Alloy.Globals.isInSandboxMode = true;
 
 Alloy.Globals.authorizationTokenV2 = '';

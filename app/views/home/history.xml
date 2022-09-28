@@ -1,0 +1,21 @@
+<Alloy>
+    <Window id="win" navBarHidden="true">
+        <View id="container">
+			<View id="headerView">
+            	<Label id="closeLabel" class="messages"/>
+				<Label id="clearLabel" class="messages"/>
+			</View>
+            <ListView id="listView" defaultItemTemplate="template">
+                <Templates>
+                    <ItemTemplate name="template">
+                        <ImageView bindId="picture" id="imageRow" />
+                        <Label bindId="timestamp" id="timestampRow" />
+						<Label bindId="size" id="sizeRow" />
+                        <ImageView bindId="status" id="statusRow" />
+                        <Label bindId="url" id="urlRow" />
+                    </ItemTemplate>
+                </Templates>
+            </ListView>
+        </View>
+    </Window>
+</Alloy>

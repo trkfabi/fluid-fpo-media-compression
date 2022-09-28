@@ -47,7 +47,7 @@ const appNavigation = (function () {
 			color: logColor
 		});
         _parms.openControllers = openControllers;
-        let controller = Alloy.createController("home/activityHistory", _parms);
+        let controller = Alloy.createController("home/history", _parms);
         
         controller.getView().open();		
 	}

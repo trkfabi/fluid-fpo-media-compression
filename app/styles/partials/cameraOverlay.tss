@@ -25,17 +25,18 @@
     backgroundColor: '#FFFFFF'
 }
 "#historyButton": {
-    bottom: 10,
-    right: 10,
+    bottom: 20,
+    right: 20,
     backgroundImage: '/images/btnHistory.png',
-    height: 30,
-    width: 30
+    height: 25,
+    width: 25
 }
 "#mediaTypeButton": {
     title: 'Switch to Video',
     width: 150,
     height: 40,
-    top: 20
+    top: 20,
+    visible: false
 }
 "#buttonsRow": {
     bottom: 20,
