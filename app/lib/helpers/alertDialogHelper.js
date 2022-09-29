@@ -25,7 +25,7 @@ var alertDialogHelper = (function () {
 		_params.message = _params.message || '';
 		_params.backgroundColor = _params.backgroundColor || '#CCCCCC';
 		_params.color = _params.color || '#000000';
-		_params.duration = _params.duration || 3000;
+		_params.duration = _params.hasOwnProperty('duration') ? _params.duration : 3000;
 		_params.font = _params.font || {
 			fontSize: 16
 		};
@@ -74,7 +74,8 @@ var alertDialogHelper = (function () {
 		win.add(view);
 		win.open();
 
-		setTimeout(win.close, _params.duration);
+		_params.duration > 0 && setTimeout(win.close, _params.duration);
+		return win;
 	}
 	/*
 	 * @method createAlertDialog

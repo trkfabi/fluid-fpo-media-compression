@@ -24,15 +24,15 @@ const doUploadFile = _parms => {
         text: 'doUploadFile()',
         program: logProgram
     });       
-	let uploadFile  = Ti.Filesystem.getFile(postProcessedFile.url);
+	let uploadFile = postProcessedFile.blob; // Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, postProcessedFile.name);
     let fileSize = null;
     let fileSizeUnit = '';
-	if (!uploadFile.exists()){ 
-        $.messagesLabel.color = $.messagesLabel.errorColor;
-        $.messagesLabel.text = 'Error!\nCould not find file.'
+	// if (!uploadFile.exists()){ 
+    //     $.messagesLabel.color = $.messagesLabel.errorColor;
+    //     $.messagesLabel.text = 'Error!\nCould not find file.'
 
-        return false;
-    }
+    //     return false;
+    // }
     $.retakeButton.enabled = false;
     $.uploadButton.enabled = false;
     $.uploadButton.title = 'Uploading...';
@@ -49,7 +49,6 @@ const doUploadFile = _parms => {
         fileSizeUnit = 'mb';
     }
     
- 
     api.media.upload({
         media: uploadFile,
         onSuccess: _e => {
@@ -61,15 +60,17 @@ const doUploadFile = _parms => {
             // large-sq is 1024x1024
             // url is 640x640
             let activityItem = {
+                name: postProcessedFile.name,
                 url: _e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
                 file: postProcessedFile.url,
                 size: fileSize + ' ' + fileSizeUnit,
                 type: postProcessedFile.type,
-                date: moment().format("MMM D, LT"),
+                date: moment().format("MMM D, LTS"),
                 videothumbnail: '/images/videofile.png',
                 status: 'success' 
             };
             postProcessedFile.publicUrl = activityItem.url;
+
             activity.push(activityItem);
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
             Alloy.Globals.activityHistory = activity;
@@ -107,14 +108,17 @@ const doUploadFile = _parms => {
             $.uploadButton.title = 'Retry'; 
 
             let activityItem = {
+                name: postProcessedFile.name,
                 url: postProcessedFile.url,
                 file: postProcessedFile.url,
                 size: fileSize + ' ' + fileSizeUnit,
                 type: postProcessedFile.type,
-                date: moment().format("MMM D, LT"),
+                date: moment().format("MMM D, LTS"),
                 videothumbnail: '/images/videofile.png',
                 status: 'error' 
-            };            
+            }; 
+            postProcessedFile.publicUrl = '';
+
             activity.push(activityItem);
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
             Alloy.Globals.activityHistory = activity;            
@@ -150,6 +154,8 @@ const configure = () => {
                 });
                 Ti.Media.addEventListener('exportvideo:completed', _e => {
                     postProcessedFile = {
+                        blob: null,
+                        name: filename,
                         url: _e.url,
                         type: 'video'
                     };
@@ -161,37 +167,40 @@ const configure = () => {
                 });
             } else {
                 postProcessedFile = {
+                    blob: _e.media,
+                    name: filename,
                     url: outputFile.nativePath,
                     type: 'video'
                 };                
             }
             outputFile = null;
         } else {
+            let isLandscape = _e.media.width > _e.media.height;
             let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
             let newW = desiredSize;
             let newH = newW * ratio;
             let resizedImage = _e.media.imageAsResized(newW, newH);
 
-            // this is just curiousity
-            var fileSizeOri = _e.media.size/1024;
-            fileSizeOri = fileSizeOri.toFixed(2);
-            var fileSizeOriUnit = 'kb';
-            if (Math.trunc(fileSizeOri/1024) > 0) {
-                fileSizeOri = fileSizeOri/1024;
-                fileSizeOri = fileSizeOri.toFixed(2);
-                fileSizeOriUnit = 'mb';
-            }
+            // // this is just curiousity
+            // var fileSizeOri = _e.media.size/1024;
+            // fileSizeOri = fileSizeOri.toFixed(2);
+            // var fileSizeOriUnit = 'kb';
+            // if (Math.trunc(fileSizeOri/1024) > 0) {
+            //     fileSizeOri = fileSizeOri/1024;
+            //     fileSizeOri = fileSizeOri.toFixed(2);
+            //     fileSizeOriUnit = 'mb';
+            // }
         
-            var fileSizeNew = resizedImage.size/1024;
-            fileSizeNew = fileSizeNew.toFixed(2);
-            var fileSizeNewUnit = 'kb';
-            if (Math.trunc(fileSizeNew/1024) > 0) {
-                fileSizeNew = fileSizeNew/1024;
-                fileSizeNew = fileSizeNew.toFixed(2);
-                fileSizeNewUnit = 'mb';
-            }
+            // var fileSizeNew = resizedImage.size/1024;
+            // fileSizeNew = fileSizeNew.toFixed(2);
+            // var fileSizeNewUnit = 'kb';
+            // if (Math.trunc(fileSizeNew/1024) > 0) {
+            //     fileSizeNew = fileSizeNew/1024;
+            //     fileSizeNew = fileSizeNew.toFixed(2);
+            //     fileSizeNewUnit = 'mb';
+            // }
             
-            console.warn(`Original: ${fileSizeOri} ${fileSizeOriUnit} ${_e.media.width}x${_e.media.height} Resized: ${fileSizeNew} ${fileSizeNewUnit} ${newW}x${newH}`);    
+            // console.warn(`Original: isLandscape: ${isLandscape} - ${fileSizeOri} ${fileSizeOriUnit} ${_e.media.width}x${_e.media.height} Resized: ${fileSizeNew} ${fileSizeNewUnit} ${newW}x${newH}`);    
             ////////
 
             var filename = 'photo_' + moment().format('YYYYMMDDhhmmss') + '.png';
@@ -206,6 +215,8 @@ const configure = () => {
             $.retakeButton.enabled = true;
             $.uploadButton.enabled = true;
             postProcessedFile = {
+                name: filename,
+                blob: resizedImage,
                 url: outputFile.nativePath,
                 type: 'photo'
             };                            
@@ -238,7 +249,7 @@ const onRetakeButtonClick = () => {
         Ti.UI.Clipboard.clearText();
         Ti.UI.Clipboard.setText(postProcessedFile.publicUrl);
         alertDialogHelper.createTemporalMessage({
-            message: 'Copied to clipboard',
+            message: 'URL copied to clipboard',
             duration: 2000,
             opacity: 0.8,
             font: {

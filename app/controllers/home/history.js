@@ -1,4 +1,5 @@
 const alertDialogHelper = require("helpers/alertDialogHelper");
+const helper = require('/helpers/helper');
 
 const logProgram = 'home/activityHistory';
 const args = $.args;
@@ -8,27 +9,35 @@ let activity = Alloy.Globals.activityHistory;
 const configure = () => {
     var dataSet = [];
     activity.forEach( (item, index) => {
+        //var itemImage = item.url;
+        //if (item.status !== 'success') {
+        var itemImage = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, item.name);
+        //}
+        
         dataSet.push({
             template: "template",
-            urlToCopy: item.url,
+            itemUrl: item.url,
+            itemStatus: item.status,
+            itemType: item.type,
+            itemName: item.name,
             properties: {
                 height: 70,
                 selectionStyle: 0
             },
-            picture: {
-                image: item.type === 'photo' ? item.url: (item.videothumbnail || null)
+            bindItemPicture: {
+                image: item.type === 'photo' ? itemImage: (item.videothumbnail || null)
             },
-            timestamp: {
+            bindItemTimestamp: {
                 text: item.date
             },
-            size: {
+            bindItemSize: {
                 text: item.size || ''
             },            
-            status: {
+            bindItemStatus: {
                 image: item.status === 'success' ? '/images/success.png': '/images/error.png'
             },
-            url: {
-                text: item.status === 'success' ? 'Click to copy the URL': ''
+            bindItemUrl: {
+                text: item.status === 'success' ? 'Click to copy the URL': 'Retry upload'
             }
             
         });
@@ -46,6 +55,12 @@ const onClearHistoryClick = () => {
         message: `This can't be undone.`,
         cancelActionCallback: () => {},
         confirmActionCallback: () => {
+            activity.forEach( (item, index) => {
+                var file = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, item.name);
+                if ( file.exists() ) {
+                    file.deleteFile();
+                }
+            });
             activity = [];
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
             Alloy.Globals.activityHistory = activity;   
@@ -62,17 +77,81 @@ const onCloseLabelClick = () => {
 $.closeLabel.addEventListener('click', onCloseLabelClick);
 
 const onListClick = (_e) => {
-    let url = $.listView.sections[_e.sectionIndex].getItemAt(_e.itemIndex).urlToCopy;
-    Ti.UI.Clipboard.clearText();
-    Ti.UI.Clipboard.setText(url);    
-    alertDialogHelper.createTemporalMessage({
-        message: 'Copied to clipboard',
-        duration: 2000,
-        opacity: 0.8,
-        font: {
-            fontSize: 20
-        }
-    });
+    let url = $.listView.sections[_e.sectionIndex].getItemAt(_e.itemIndex).itemUrl;
+    let type = $.listView.sections[_e.sectionIndex].getItemAt(_e.itemIndex).itemType;
+    let name = $.listView.sections[_e.sectionIndex].getItemAt(_e.itemIndex).itemName;
+    if ($.listView.sections[_e.sectionIndex].getItemAt(_e.itemIndex).itemStatus === 'success') {
+        Ti.UI.Clipboard.clearText();
+        Ti.UI.Clipboard.setText(url);    
+        alertDialogHelper.createTemporalMessage({
+            message: 'URL copied to clipboard',
+            duration: 2000,
+            opacity: 0.8,
+            font: {
+                fontSize: 20
+            }
+        });
+    } else {
+        alertDialogHelper.createConfirmDialog({
+            title: 'Retry upload?',
+            message: `This will try to upload the file.`,
+            cancelActionCallback: () => {},
+            confirmActionCallback: () => {
+                var messageDialog = alertDialogHelper.createTemporalMessage({
+                    message: 'Uploading...',
+                    duration: 0,
+                    opacity: 0.8,
+                    font: {
+                        fontSize: 20
+                    }
+                });          
+                helper.uploadFile({
+                    file: {
+                        name,
+                        url,
+                        type
+                    },
+                    onSuccess: _response => {
+                        messageDialog.close();
+                        let newActivityItem = _response.item;
+                        activity.push(newActivityItem);
+                        Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+                        Alloy.Globals.activityHistory = activity;
+            
+                        Ti.UI.Clipboard.clearText();
+                        Ti.UI.Clipboard.setText(newActivityItem.url);   
+                        configure();
+                        alertDialogHelper.createTemporalMessage({
+                            message: 'URL copied to clipboard',
+                            duration: 2000,
+                            opacity: 0.8,
+                            font: {
+                                fontSize: 20
+                            }
+                        });                             
+                    },
+                    onError: _response => {
+                        messageDialog.close();
+                        let newActivityItem = _response.item;
+                        Ti.UI.Clipboard.clearText();
+                        activity.push(newActivityItem);
+                        Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+                        Alloy.Globals.activityHistory = activity;
+                        configure();
+                        alertDialogHelper.createTemporalMessage({
+                            message: 'File could not be uploaded.',// Error: ' + _response.error.messages[0],
+                            duration: 2000,
+                            opacity: 0.8,
+                            color: 'red',
+                            font: {
+                                fontSize: 20
+                            }
+                        });                 
+                    }
+                });      
+            }
+        }).show();        
+    }
 }
 
 $.listView.addEventListener('itemclick', onListClick);
