@@ -19,18 +19,18 @@
     visible: false,
     zIndex: 10,
     //clipViews:false,
-    showPagingControl:true,
-    backgroundColor: 'red'
+    showPagingControl: true
 }
-"#scrollableView[platform=android]": {
-    padding: {
-        left:40,
-        right:40
-    }
-}
-"#scrollableView[platform=ios]": {
-    width: '90%'
-}
+// if using clipViews: false
+// "#scrollableView[platform=android]": {
+//     padding: {
+//         left:40,
+//         right:40
+//     }
+// }
+// "#scrollableView[platform=ios]": {
+//     width: '90%'
+// }
 "#scrollableView[if=Alloy.Globals.hasNotch]": {
     bottom: 250
 }

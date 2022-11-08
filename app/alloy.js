@@ -1,5 +1,5 @@
 // SUPPORT VIDEO OR NOT
-Alloy.Globals.allowVideoFiles = false;
+Alloy.Globals.allowVideoFiles = true;
 
 Alloy.Globals.isInSandboxMode = true;
 
