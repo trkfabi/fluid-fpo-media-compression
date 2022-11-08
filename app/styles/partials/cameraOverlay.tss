@@ -38,6 +38,16 @@
     top: 20,
     visible: false
 }
+"#recordingTime": {
+    color: 'red',
+    font: {
+        fontSize: 14
+    },
+    left: 20,
+    top: 35,
+    textAlign: 'left',
+    visible: false	
+}
 "#buttonsRow": {
     bottom: 20,
     left: 0,

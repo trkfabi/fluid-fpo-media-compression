@@ -12,6 +12,28 @@
     width: 180,
     height: 20
 }
+"#scrollableView": {
+    top: 100,
+    width: Ti.UI.SIZE,
+    bottom: 210,
+    visible: false,
+    zIndex: 10,
+    //clipViews:false,
+    showPagingControl:true,
+    backgroundColor: 'red'
+}
+"#scrollableView[platform=android]": {
+    padding: {
+        left:40,
+        right:40
+    }
+}
+"#scrollableView[platform=ios]": {
+    width: '90%'
+}
+"#scrollableView[if=Alloy.Globals.hasNotch]": {
+    bottom: 250
+}
 "#imagePreview": {
     top: 100,
     width: Ti.UI.SIZE,

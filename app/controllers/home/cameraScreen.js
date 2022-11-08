@@ -4,6 +4,7 @@ const logProgram = 'home/cameraScreen';
 const args = $.args;
 
 let isRecording = false;
+let isLandscape = Ti.Gesture.landscape;
 
 const checkStoragePermissions = () => {
     Alloy.Globals.doLog({
@@ -79,7 +80,10 @@ const openCamera = (_mediaType) => {
                 _mediaType = Titanium.Media.MEDIA_TYPE_PHOTO;
             }
             Ti.Media.hideCamera();
-            openCamera(_mediaType);
+            setTimeout(function(){
+                openCamera(_mediaType);
+            }, 1000);
+            
         },
         onHistory: () => {
             Ti.Media.hideCamera();
@@ -140,7 +144,7 @@ const openGallery = () => {
     Ti.Media.openPhotoGallery({
         allowEditing: false,
         autohide: true,
-        allowMultiple: false,
+        allowMultiple: true,
         mediaTypes: Alloy.Globals.allowVideoFiles ? [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO]: [Titanium.Media.MEDIA_TYPE_PHOTO], 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
@@ -243,3 +247,20 @@ $.win.addEventListener('close', ()=>{
         program: logProgram
     });        
 });
+
+// Titanium.Gesture.addEventListener('orientationchange', e => {
+//     console.warn(JSON.stringify(e));
+//     if (!isLandscape && Ti.Gesture.landscape) {
+//         // changed
+//         console.warn('changed to landscape');
+//         Ti.Media.hideCamera();
+//         openCamera();
+//     }
+//     if (isLandscape && Ti.Gesture.portrait) {
+//         // changed
+//         console.warn('changed to portrait');
+//         Ti.Media.hideCamera();
+//         openCamera();
+//     }
+//     isLandscape = Ti.Gesture.landscape;
+// });

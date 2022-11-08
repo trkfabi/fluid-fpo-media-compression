@@ -5,6 +5,7 @@
             <Button id="historyButton" />
         </View>
         <View id="overlayBottom">
+            <Label id="recordingTime" />
             <Button id="mediaTypeButton" class="whiteButton"/>
             <View id="buttonsRow">
                 <Button id="flashToggleButton" />
