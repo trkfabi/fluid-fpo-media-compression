@@ -191,13 +191,25 @@ const configure = () => {
 
 function processItem(_items, _totalItems) {
     Alloy.Globals.doLog({
-        text: 'processItem() ' + JSON.stringify(_items) + ' total: '+_totalItems+ ' actual: '+actualItem,
+        text: 'processItem() total: '+_totalItems+ ' actual: '+actualItem,
         program: logProgram
     });     
     let _e = _items[actualItem];
 
     if(_e.mediaType === 'public.movie') {   
+        Alloy.Globals.doLog({
+            text: 'Item is a movie',
+            program: logProgram
+        });          
+        if (!_e.success) {
+            actualItem ++;
+            if (actualItem < _totalItems) {
+                return processItem(_items, _totalItems);
+            }   
 
+            doEndProcessing();            
+            return;
+        }
         var filename = 'movie_' + moment().format('YYYYMMDDhhmmssSSS') + '.mov';
         var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
         if (!outputFile.write(_e.media)) {
@@ -246,7 +258,16 @@ function processItem(_items, _totalItems) {
 
         
     } else if(_e.mediaType === 'public.image') {
-        let isLandscape = _e.media.width > _e.media.height;
+        if (!_e.success) {
+            actualItem ++;
+            if (actualItem < _totalItems) {
+                return processItem(_items, _totalItems);
+            }   
+
+            doEndProcessing();            
+            return;
+        }        
+        //let isLandscape = _e.media.width > _e.media.height;
         let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
         let newW = desiredSize;
         let newH = newW * ratio;
