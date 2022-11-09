@@ -38,13 +38,23 @@
     top: 20,
     visible: false
 }
-"#recordingTime": {
-    color: 'red',
+"#genericLabel": {
+    color: "#02B3E4",
     font: {
-        fontSize: 14
+        fontSize: 18
     },
     left: 20,
-    top: 35,
+    top: 20,
+    textAlign: 'left',
+    text: 'Items: 0'
+}
+"#recordingLabel": {
+    color: 'red',
+    font: {
+        fontSize: 16
+    },
+    left: 20,
+    top: 40,
     textAlign: 'left',
     visible: false	
 }
@@ -65,7 +75,7 @@
 }
 "#snapButton": {
     backgroundImage: '/images/btnCameraEnabled.png',
-    customImageDisabled: '/images/btnCameraEnabled.png',
+    customImageEnabled: '/images/btnCameraEnabled.png',
     customImageDisabled: '/images/btnCameraDisabled.png',
     customImageRecording: '/images/btnCameraRecording.png',
     height: 70,
@@ -76,4 +86,22 @@
     backgroundImage: '/images/btnGallery.png',
     height: 50,
     width: 50    
+}
+"#nextButton": {
+    title: 'Next',
+    width: 90,
+    height: 40,
+    top: 20,
+    right: 20,
+    visible: Alloy.Globals.allowMultipleFiles
+}
+"#versionLabel": {
+    color: "#02B3E4",
+    font: {
+        fontSize: 12
+    },
+    right: 40,
+    bottom: 20,
+    textAlign: 'right',
+    text: ''
 }

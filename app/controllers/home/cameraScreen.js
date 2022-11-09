@@ -5,6 +5,11 @@ const args = $.args;
 
 let isRecording = false;
 let isLandscape = Ti.Gesture.landscape;
+Alloy.Globals.objectToProcess = {
+    success: true,
+    videos: [],
+    images: []
+};
 
 const checkStoragePermissions = () => {
     Alloy.Globals.doLog({
@@ -90,6 +95,17 @@ const openCamera = (_mediaType) => {
             appNavigation.openActivity({
                 onClose: openCamera
             });            
+        },
+        onNext: () => {
+            Ti.Media.hideCamera();
+            appNavigation.openPostProcess({
+                data: Alloy.Globals.objectToProcess,
+                onRetake: function() {
+                    Alloy.Globals.objectToProcess.images = [];
+                    Alloy.Globals.objectToProcess.videos = [];
+                    openCamera(_mediaType);
+                }
+            });             
         }
     });
 
@@ -97,7 +113,12 @@ const openCamera = (_mediaType) => {
         text: 'overlay created',
         program: logProgram
     });  
+    cameraOverlayController.updateItemsLabel();
 
+    if (Ti.App.deployType === 'development') {
+        $.container.add(cameraOverlayController.getView());
+        return;
+    }
     var transformTranslate = Ti.UI.createMatrix2D().translate(0, 100);//.scale(1, 0.745);
     Ti.Media.showCamera({
         cameraFlashMode: Ti.Media.CAMERA_FLASH_OFF,
@@ -105,7 +126,6 @@ const openCamera = (_mediaType) => {
         overlay: cameraOverlayController.getView(),
         allowEditing: false,
         autohide: false,
-        allowMultiple: false,
         mediaTypes: _mediaType && _mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? [Ti.Media.MEDIA_TYPE_PHOTO]: [Ti.Media.MEDIA_TYPE_VIDEO], //Titanium.Media.MEDIA_TYPE_VIDEO, 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
@@ -115,14 +135,26 @@ const openCamera = (_mediaType) => {
                 text: 'Camera success: ' + JSON.stringify(_e),
                 program: logProgram
             }); 
-            cameraOverlayController.onCameraDone();
-            Ti.Media.hideCamera();
-            appNavigation.openPostProcess({
-                data: _e,
-                onRetake: function() {
-                    openCamera(_mediaType);
+            
+
+            if (Alloy.Globals.allowMulitpleFiles) {
+                if (_mediaType === Ti.Media.MEDIA_TYPE_PHOTO) {
+                    Alloy.Globals.objectToProcess.images.push(_e);
+                } else {
+                    Alloy.Globals.objectToProcess.videos.push(_e);
                 }
-            });
+                cameraOverlayController.onCameraDone();
+            } else {
+                cameraOverlayController.onCameraDone();
+                Ti.Media.hideCamera();
+                appNavigation.openPostProcess({
+                    data: _e,
+                    onRetake: function() {
+                        openCamera(_mediaType);
+                    }
+                });                
+            }
+
         },
         error: _e => {
             cameraOverlayController.onCameraDone();
@@ -144,7 +176,7 @@ const openGallery = () => {
     Ti.Media.openPhotoGallery({
         allowEditing: false,
         autohide: true,
-        allowMultiple: true,
+        allowMultiple: Alloy.Globals.allowMulitpleFiles,
         mediaTypes: Alloy.Globals.allowVideoFiles ? [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO]: [Titanium.Media.MEDIA_TYPE_PHOTO], 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
@@ -236,8 +268,8 @@ $.win.addEventListener('open', ()=>{
         text: 'openControllers: ' +args.openControllers.length,
         program: logProgram
     });    
-    checkCameraPermissions();
 
+    checkCameraPermissions();
 });
 
 $.win.addEventListener('close', ()=>{

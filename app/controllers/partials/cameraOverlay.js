@@ -1,4 +1,5 @@
 const moment = require('alloy/moment');
+const alertDialogHelper = require("helpers/alertDialogHelper");
 const args = $.args;
 const logProgram = 'partials/cameraOverlay';
 
@@ -11,6 +12,7 @@ const configure = () => {
         text: 'configure()',
         program: logProgram
     });       
+    $.versionLabel.text = 'v: ' + Ti.App.version;
     $.mediaTypeButton.title = args.mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? 'Switch to Video' : 'Switch to Photo';
     $.mediaTypeButton.visible = Alloy.Globals.allowVideoFiles;
     $.flashToggleButton.backgroundImage = Ti.Media.cameraFlashMode === Ti.Media.CAMERA_FLASH_ON ? $.flashToggleButton.customImageEnabled: $.flashToggleButton.customImageDisabled;
@@ -62,7 +64,7 @@ const updateRecordingTime = () => {
     hours = String(hours).padStart(2, "0");
     seconds = String(seconds).padStart(2, "0");
     
-    $.recordingTime.text = hours + ":" + minutes + ":" + seconds;
+    $.recordingLabel.text = hours + ":" + minutes + ":" + seconds;
 }
 const onSnapButtonClick = () => {
     Alloy.Globals.doLog({
@@ -74,25 +76,25 @@ const onSnapButtonClick = () => {
             $.snapButton.backgroundImage = $.snapButton.customImageRecording;
             $.snapButton.enabled = true;
             snapButtonStatus = 'RECORDING';
-            $.recordingTime.text = '00:00:00';
-            $.recordingTime.visible = true; 
+            $.recordingLabel.text = '00:00:00';
+            $.recordingLabel.visible = true; 
             startRecordingTime = moment();
             recordingTimeInterval = setInterval(updateRecordingTime, 1000);
         } else {
             $.snapButton.backgroundImage = $.snapButton.customImageEnabled;
             $.snapButton.enabled = true;
             snapButtonStatus = 'READY';        
-            $.recordingTime.visible = false;  
+            $.recordingLabel.visible = false;  
             clearInterval(recordingTimeInterval);  
         }
     } else {
         if (snapButtonStatus === 'READY') {
             $.snapButton.backgroundImage = $.snapButton.customImageDisabled;
-            $.snapButton.enabled = false;
+            $.snapButton.enabled = false;            
             snapButtonStatus = 'DISABLED';
         } else {
             $.snapButton.backgroundImage = $.snapButton.customImageEnabled;
-            $.snapButton.enabled = true;
+            $.snapButton.enabled = true;          
             snapButtonStatus = 'READY';            
         }        
     }
@@ -104,11 +106,29 @@ const onGalleryClick = () => {
     Alloy.Globals.doLog({
         text: 'onGalleryClick()',
         program: logProgram
-    });        
-    args.onGallery();
+    }); 
+    if (Alloy.Globals.objectToProcess.images.length + Alloy.Globals.objectToProcess.videos.length > 0) {       
+        alertDialogHelper.createConfirmDialog({
+            title: 'Open gallery?',
+            message: `Photos and videos taken will be lost.`,
+            cancelActionCallback: () => {},
+            confirmActionCallback: () => {
+                Alloy.Globals.objectToProcess.images = [];
+                Alloy.Globals.objectToProcess.videos = [];
+                $.updateItemsLabel();
+                args.onGallery();           
+            }
+        }).show();
+    } else {
+        args.onGallery();
+    }
 }
 $.galleryButton.addEventListener('click', onGalleryClick);
 
+$.updateItemsLabel = () => {
+    let numberOfItems = Alloy.Globals.objectToProcess.images.length + Alloy.Globals.objectToProcess.videos.length;
+    $.genericLabel.text = 'Items: ' + numberOfItems;      
+}
 $.onCameraDone = () => {
     Alloy.Globals.doLog({
         text: 'onCameraDone()',
@@ -119,6 +139,24 @@ $.onCameraDone = () => {
     } else {
         $.snapButton.backgroundImage = $.snapButton.customImageEnabled;
         $.snapButton.enabled = true;
-        snapButtonStatus = 'READY';  
+        snapButtonStatus = 'READY'; 
     }     
+    $.updateItemsLabel();
 }
+
+const onNextButtonClick = () => {
+    Alloy.Globals.doLog({
+        text: 'onNextButtonClick()',
+        program: logProgram
+    });   
+    let numberOfItems = Alloy.Globals.objectToProcess.images.length + Alloy.Globals.objectToProcess.videos.length;   
+    if (numberOfItems > 0) {
+        args.onNext();  
+    } else {
+        alertDialogHelper.createAlertDialog({
+            title: 'No items found',
+            message: 'One photo or video is required at least.'
+        }).show();    
+    }
+}
+$.nextButton.addEventListener('click', onNextButtonClick);

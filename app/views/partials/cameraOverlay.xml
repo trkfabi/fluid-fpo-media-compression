@@ -5,13 +5,16 @@
             <Button id="historyButton" />
         </View>
         <View id="overlayBottom">
-            <Label id="recordingTime" />
-            <Button id="mediaTypeButton" class="whiteButton"/>
+            <Label id="genericLabel" />
+            <Label id="recordingLabel" />
+            <Button id="mediaTypeButton" class="blueButton"/>
+            <Button id="nextButton" class="blueButton"/>
             <View id="buttonsRow">
                 <Button id="flashToggleButton" />
                 <Button id="snapButton" />
                 <Button id="galleryButton" />
             </View>
+            <Label id="versionLabel" />
         </View>
     </View>
 </Alloy>

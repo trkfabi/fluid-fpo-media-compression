@@ -19,7 +19,10 @@
     visible: false,
     zIndex: 10,
     //clipViews:false,
-    showPagingControl: true
+    showPagingControl: true,
+    currentPageIndicatorColor: "#02B3E4",
+    pageIndicatorColor: "#BBBBBB",
+    pagingControlHeight: 30
 }
 // if using clipViews: false
 // "#scrollableView[platform=android]": {

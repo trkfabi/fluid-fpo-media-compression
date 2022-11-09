@@ -122,7 +122,7 @@ const onListClick = (_e) => {
                         Ti.UI.Clipboard.setText(newActivityItem.url);   
                         configure();
                         alertDialogHelper.createTemporalMessage({
-                            message: 'URL copied to clipboard',
+                            message: 'URL(s) copied to clipboard',
                             duration: 2000,
                             opacity: 0.8,
                             font: {

@@ -9,7 +9,7 @@ let activity = Alloy.Globals.activityHistory;
 let postProcessedFiles = [];
 let postProcessedFile = {};
 let desiredSize = 640;
-let actualItem, foundImages, foundVideos;
+let actualItem, foundImages, foundVideos, uploadedItems;
 
 let state = 'ready'; // uploading , done 
 
@@ -28,9 +28,13 @@ const doUploadFile = () => {
     });       
     
     let postProcessedFile = postProcessedFiles[actualItem];
-    console.warn(JSON.stringify(postProcessedFile ));
+    //console.warn(JSON.stringify(postProcessedFile ));
     if (postProcessedFile.type === 'video') {
-        console.warn('Endpoint does not allow videos yet');
+        Alloy.Globals.doLog({
+            text: 'Backend Endpoint does not allow video uploading yet',
+            program: logProgram
+        });          
+        
         actualItem++;
         if (actualItem < postProcessedFiles.length) {
             return doUploadFile();
@@ -67,6 +71,8 @@ const doUploadFile = () => {
                 program: logProgram
             });
             state = 'done';
+            uploadedItems++;
+
             // large-sq is 1024x1024
             // url is 640x640
             let activityItem;
@@ -82,10 +88,9 @@ const doUploadFile = () => {
                     status: 'success' 
                 };
             } else {
-                // videos
+                // videos ??
             }
-            //postProcessedFile.publicUrl = activityItem.url;
-
+    
             activity.push(activityItem);
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
             Alloy.Globals.activityHistory = activity;
@@ -96,8 +101,6 @@ const doUploadFile = () => {
             }
 
             doEndUploading();
-
-
         },
         onError: _e => {
             Alloy.Globals.doLog({
@@ -127,7 +130,6 @@ const doUploadFile = () => {
                 videothumbnail: '/images/videofile.png',
                 status: 'error' 
             }; 
-            //postProcessedFile.publicUrl = '';
 
             activity.push(activityItem);
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
@@ -150,7 +152,7 @@ function doEndUploading() {
     Ti.UI.Clipboard.setText(urls);
 
     $.messagesLabel.color = $.messagesLabel.successColor;
-    $.messagesLabel.text = 'Success!\nURLs copied to clipboard. Paste in FOPs'
+    $.messagesLabel.text = 'Success!\n' +uploadedItems+ ' URL(s) copied to clipboard. Paste in FOPs'
     
     $.retakeButton.enabled = true;
     $.retakeButton.title = 'Re-copy';
@@ -223,7 +225,6 @@ function processItem(_items, _totalItems) {
                     return processItem(_items, _totalItems);
                 }   
 
-                console.log('FROM 1');
                 doEndProcessing();
             });
         } else {
@@ -238,13 +239,13 @@ function processItem(_items, _totalItems) {
             if (actualItem < _totalItems) {
                 return processItem(_items, _totalItems);
             } 
-            console.log('FROM 2');
+            
             doEndProcessing();
         }
         outputFile = null;
 
         
-    } else {
+    } else if(_e.mediaType === 'public.image') {
         let isLandscape = _e.media.width > _e.media.height;
         let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
         let newW = desiredSize;
@@ -270,7 +271,7 @@ function processItem(_items, _totalItems) {
         if (actualItem < _totalItems) {
             return processItem(_items, _totalItems);
         } 
-        console.log('FROM 3');
+        
         doEndProcessing();
     }    
 }
@@ -309,7 +310,7 @@ configure();
 
 const onUploadButtonClick = () => {
     Alloy.Globals.doLog({
-        text: 'onUploadButtonClick()',
+        text: 'onUploadButtonClick() state: ' + state,
         program: logProgram
     });      
     if (state === 'done') {
@@ -317,13 +318,16 @@ const onUploadButtonClick = () => {
         args.onRetake && args.onRetake();
         $.win.close();
     } else {
-        actualItem = 0;
+        if (state !== 'error') {
+            uploadedItems = 0;
+            actualItem = 0;
+        }
         doUploadFile();
     }
 };
 const onRetakeButtonClick = () => {
     Alloy.Globals.doLog({
-        text: 'onRetakeButtonClick()',
+        text: 'onRetakeButtonClick() state: '+state,
         program: logProgram
     });      
     if (state === 'done') {
@@ -336,7 +340,7 @@ const onRetakeButtonClick = () => {
         })
         Ti.UI.Clipboard.setText(urls);        
         alertDialogHelper.createTemporalMessage({
-            message: 'URLs copied to clipboard',
+            message: 'URL(s) copied to clipboard',
             duration: 2000,
             opacity: 0.8,
             font: {
