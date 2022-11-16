@@ -66,6 +66,13 @@
 "#bottomContainer[if=Alloy.Globals.hasNotch]": {
     height: 240
 }
+"#messagesTitleLabel": {
+    top: 5,
+    left: 20,
+    right: 20,
+    successColor: '#228B22',
+    errorColor: '#DC143C'
+}
 "#messagesLabel": {
     top: 5,
     left: 20,

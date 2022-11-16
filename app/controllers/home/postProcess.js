@@ -14,6 +14,13 @@ let copiedUrls = 0, countSuccess = 0, sessionActivity = [];
 
 let state = 'ready'; // uploading , done 
 
+const blinking = Ti.UI.createAnimation({
+    opacity: 0.3,
+    duration : 500,
+    autoreverse : true,
+    repeat : 2
+});
+
 const activityIndicator = Ti.UI.createActivityIndicator({
     color: '#FFFFFF',
     style: Ti.UI.ActivityIndicatorStyle.PLAIN,
@@ -159,8 +166,12 @@ function doEndUploading() {
     });     
     copyToClipboard({
         callback: (_result) => {
-            $.messagesLabel.color = $.messagesLabel.successColor;
+            $.messagesTitleLabel.color = _result.messageColor || $.messagesTitleLabel.successColor;
+            $.messagesTitleLabel.text = _result.messageTitle;
+
+            $.messagesLabel.color = _result.messageColor || $.messagesLabel.successColor;
             $.messagesLabel.text = _result.message;
+            $.messagesLabel.animate(blinking);
             
             $.retakeButton.enabled = true;
             $.retakeButton.title = 'Re-copy';
@@ -185,40 +196,48 @@ function copyToClipboard(_parms) {
         }
         return false;
     }).length; 
-    console.warn('copyToClipboard() copied: '+copiedUrls + ' countSuccess: '+countSuccess);
-
+    
     if (countSuccess === 0) {
+        _parms.callback && _parms.callback({
+            messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' could be uploaded!',
+            message:  'Please select another file.',
+            messageColor: $.messagesTitleLabel.errorColor
+        });           
         return;
     }
-    if (countSuccess === 1) {
-        Ti.UI.Clipboard.clearText();
-        sessionActivity.forEach(item => {
-            if (item.status === 'success') {
-                Ti.UI.Clipboard.setText(item.url); 
+    Ti.App.addEventListener('resume', onResume);
+
+    // if (countSuccess === 1) {
+    //     Ti.UI.Clipboard.clearText();
+    //     sessionActivity.forEach(item => {
+    //         if (item.status === 'success') {
+    //             Ti.UI.Clipboard.setText(item.url); 
               
-            }
-        });    
-        _parms.callback && _parms.callback({
-            message:  'Success!\nURL copied to clipboard. Paste in FOPs'
-        });    
-        return;                
-    }
+    //         }
+    //     });    
+    //     copiedUrls++;
+    //     _parms.callback && _parms.callback({
+    //         messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' successfully uploaded!',
+    //         message:  'URL copied to clipboard. Paste in FOPs'
+    //     });    
+    //     return;                
+    // }
 
     if (copiedUrls < countSuccess) {
-        Ti.App.addEventListener('resume', onResume);
-
         Ti.UI.Clipboard.clearText();
         if (sessionActivity[copiedUrls].status === 'success') {
             Ti.UI.Clipboard.setText(sessionActivity[copiedUrls].url); 
             copiedUrls++;
             _parms.callback && _parms.callback({
-                message:  'Success!\n' +copiedUrls+ ' of ' + countSuccess + ' URLs copied to clipboard. Paste in FOPs and come back to copy the next one.'
+                messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' successfully uploaded!',
+                message:  copiedUrls+ ' of ' + countSuccess + ' URLs copied to clipboard. Paste in FOPs' +  (countSuccess===1 ? '' : ' and come back to copy the next one.')
             });
         }
     } else {
-        Ti.UI.Clipboard.clearText();
+        
         _parms.callback && _parms.callback({
-            message:  'Success!\n' +copiedUrls+ ' of ' + countSuccess + ' URLs already copied.'
+            messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' successfully uploaded!',
+            message:  copiedUrls+ ' of ' + countSuccess + ' URLs already copied.'
         });        
     }
 
@@ -415,18 +434,37 @@ const onRetakeButtonClick = () => {
     });      
     if (state === 'done') {
         // recopy
+        copiedUrls = 0;
         copyToClipboard({
-            callback: () => {
-                alertDialogHelper.createTemporalMessage({
-                    message: 'URL(s) copied to clipboard',
-                    duration: 2000,
-                    opacity: 0.8,
-                    font: {
-                        fontSize: 20
-                    }
-                }); 
+            callback: (_result) => {
+                $.messagesTitleLabel.color = _result.messageColor || $.messagesTitleLabel.successColor;
+                $.messagesTitleLabel.text = _result.messageTitle;
+    
+                $.messagesLabel.color = _result.messageColor || $.messagesLabel.successColor;
+                $.messagesLabel.text = _result.message;
+                $.messagesLabel.animate(blinking);
+                
+                $.retakeButton.enabled = true;
+                $.retakeButton.title = 'Re-copy';
+            
+                activityIndicator.hide();
+                $.uploadButton.remove(activityIndicator);
+                $.uploadButton.enabled = true;
+                $.uploadButton.title = 'Take another'; 
             }
-        });
+        });        
+        // copyToClipboard({
+        //     callback: () => {
+        //         alertDialogHelper.createTemporalMessage({
+        //             message: 'URL(s) copied to clipboard',
+        //             duration: 2000,
+        //             opacity: 0.8,
+        //             font: {
+        //                 fontSize: 20
+        //             }
+        //         }); 
+        //     }
+        // });
 
        
     } else {

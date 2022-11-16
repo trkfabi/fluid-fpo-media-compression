@@ -1,5 +1,6 @@
 const appNavigation = require('appNavigation');
 const hapticFeedbackHelper = require('helpers/hapticFeedbackHelper');
+const alertDialogHelper = require("helpers/alertDialogHelper");
 const logProgram = 'home/cameraScreen';
 const args = $.args;
 
@@ -97,15 +98,52 @@ const openCamera = (_mediaType) => {
             });            
         },
         onNext: () => {
-            Ti.Media.hideCamera();
-            appNavigation.openPostProcess({
-                data: Alloy.Globals.objectToProcess,
-                onRetake: function() {
-                    Alloy.Globals.objectToProcess.images = [];
-                    Alloy.Globals.objectToProcess.videos = [];
-                    openCamera(_mediaType);
+
+            var anyValid = false;
+            if (Alloy.Globals.objectToProcess.images && Alloy.Globals.objectToProcess.images.length > 0) {
+                const validImages = Alloy.Globals.objectToProcess.images.filter(obj => {
+                    if (obj.success) {
+                        return true;
+                    }
+                    return false;
+                }).length; 
+                if (validImages > 0) {
+                    anyValid = true;
                 }
-            });             
+            }; 
+            if (!anyValid && Alloy.Globals.objectToProcess.videos && Alloy.Globals.objectToProcess.videos.length > 0) {
+                const validVideos = Alloy.Globals.objectToProcess.videos.filter(obj => {
+                    if (obj.success) {
+                        return true;
+                    }
+                    return false;
+                }).length; 
+                if (validVideos > 0) {
+                    anyValid = true;
+                }
+            };  
+            if (anyValid) {
+                Ti.Media.hideCamera();
+                appNavigation.openPostProcess({
+                    data: Alloy.Globals.objectToProcess,
+                    onRetake: function() {
+                        Alloy.Globals.objectToProcess.images = [];
+                        Alloy.Globals.objectToProcess.videos = [];
+                        openCamera(_mediaType);
+                    }
+                }); 
+            } else {
+                alertDialogHelper.createTemporalMessage({
+                    message: 'Error: no valid files found.',
+                    duration: 2000,
+                    opacity: 0.8,
+                    font: {
+                        fontSize: 20
+                    }
+                });                     
+            }
+        
+            
         }
     });
 
@@ -146,13 +184,59 @@ const openCamera = (_mediaType) => {
                 cameraOverlayController.onCameraDone();
             } else {
                 cameraOverlayController.onCameraDone();
-                Ti.Media.hideCamera();
-                appNavigation.openPostProcess({
-                    data: _e,
-                    onRetake: function() {
-                        openCamera(_mediaType);
+                if (_e.success) {
+                    var anyValid = false;
+                    if (_e.images && _e.images.length > 0) {
+                        const validImages = _e.images.filter(obj => {
+                            if (obj.success) {
+                              return true;
+                            }
+                            return false;
+                        }).length; 
+                        if (validImages > 0) {
+                            anyValid = true;
+                        }
+                    }; 
+                    if (!anyValid && _e.videos && _e.videos.length > 0) {
+                        const validVideos = _e.videos.filter(obj => {
+                            if (obj.success) {
+                              return true;
+                            }
+                            return false;
+                        }).length; 
+                        if (validVideos > 0) {
+                            anyValid = true;
+                        }
+                    };  
+                    if (anyValid) {
+                        Ti.Media.hideCamera();
+                        appNavigation.openPostProcess({
+                            data: _e,
+                            onRetake: function() {
+                                openCamera(_mediaType);
+                            }
+                        });  
+                    } else {
+                        alertDialogHelper.createTemporalMessage({
+                            message: 'Error: no valid files found.',
+                            duration: 2000,
+                            opacity: 0.8,
+                            font: {
+                                fontSize: 20
+                            }
+                        });                     
                     }
-                });                
+                } else {
+                    alertDialogHelper.createTemporalMessage({
+                        message: 'Error: no valid files found.',
+                        duration: 2000,
+                        opacity: 0.8,
+                        font: {
+                            fontSize: 20
+                        }
+                    });                     
+                }                       
+              
             }
 
         },
@@ -185,12 +269,59 @@ const openGallery = () => {
                 text: 'Gallery success: ' + JSON.stringify(_e),
                 program: logProgram
             });             
-            appNavigation.openPostProcess({
-                data: _e,
-                onRetake: function() {
-                    openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
+
+            if (_e.success) {
+                var anyValid = false;
+                if (_e.images && _e.images.length > 0) {
+                    const validImages = _e.images.filter(obj => {
+                        if (obj.success) {
+                          return true;
+                        }
+                        return false;
+                    }).length; 
+                    if (validImages > 0) {
+                        anyValid = true;
+                    }
+                }; 
+                if (!anyValid && _e.videos && _e.videos.length > 0) {
+                    const validVideos = _e.videos.filter(obj => {
+                        if (obj.success) {
+                          return true;
+                        }
+                        return false;
+                    }).length; 
+                    if (validVideos > 0) {
+                        anyValid = true;
+                    }
+                };  
+                if (anyValid) {
+                    appNavigation.openPostProcess({
+                        data: _e,
+                        onRetake: function() {
+                            openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
+                        }
+                    });
+                } else {
+                    alertDialogHelper.createTemporalMessage({
+                        message: 'Error: no valid files found.',
+                        duration: 2000,
+                        opacity: 0.8,
+                        font: {
+                            fontSize: 20
+                        }
+                    });                     
                 }
-            });
+            } else {
+                alertDialogHelper.createTemporalMessage({
+                    message: 'Error: no valid files found.',
+                    duration: 2000,
+                    opacity: 0.8,
+                    font: {
+                        fontSize: 20
+                    }
+                });                     
+            }             
+
         },
         error: _e => {
             Alloy.Globals.doLog({
