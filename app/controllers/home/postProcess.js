@@ -10,6 +10,7 @@ let postProcessedFiles = [];
 let postProcessedFile = {};
 let desiredSize = 640;
 let actualItem, foundImages, foundVideos, uploadedItems;
+let copiedUrls = 0, countSuccess = 0, sessionActivity = [];
 
 let state = 'ready'; // uploading , done 
 
@@ -85,12 +86,24 @@ const doUploadFile = () => {
                     type: postProcessedFile.type,
                     date: moment().format("MMM D, LTS"),
                     videothumbnail: '/images/videofile.png',
-                    status: 'success' 
+                    status: 'success'
                 };
             } else {
                 // videos ??
+                activityItem = {
+                    name: postProcessedFile.name,
+                    url:  '', //_e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
+                    file: '', //postProcessedFile.url,
+                    size: '', //fileSize + ' ' + fileSizeUnit,
+                    type: postProcessedFile.type,
+                    date: moment().format("MMM D, LTS"),
+                    videothumbnail: '/images/videofile.png',
+                    status: 'error' 
+                };                
             }
-    
+
+            sessionActivity.push(activityItem);
+
             activity.push(activityItem);
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
             Alloy.Globals.activityHistory = activity;
@@ -144,23 +157,71 @@ function doEndUploading() {
         text: 'doEndUploading()',
         program: logProgram
     });     
-    Ti.UI.Clipboard.clearText();
-    let urls = '';
-    Alloy.Globals.activityHistory.forEach(item => {
-        urls += item.url + ' ';
-    })
-    Ti.UI.Clipboard.setText(urls);
-
-    $.messagesLabel.color = $.messagesLabel.successColor;
-    $.messagesLabel.text = 'Success!\n' +uploadedItems+ ' URL(s) copied to clipboard. Paste in FOPs'
+    copyToClipboard({
+        callback: (_result) => {
+            $.messagesLabel.color = $.messagesLabel.successColor;
+            $.messagesLabel.text = _result.message;
+            
+            $.retakeButton.enabled = true;
+            $.retakeButton.title = 'Re-copy';
+        
+            activityIndicator.hide();
+            $.uploadButton.remove(activityIndicator);
+            $.uploadButton.enabled = true;
+            $.uploadButton.title = 'Take another'; 
+        }
+    });
+}
+function onResume() {
+    console.warn('onResume');
+    Ti.App.removeEventListener('resume', onResume);
+    doEndUploading();
+}
+function copyToClipboard(_parms) {
     
-    $.retakeButton.enabled = true;
-    $.retakeButton.title = 'Re-copy';
+    countSuccess = sessionActivity.filter(obj => {
+        if (obj.status === 'success') {
+          return true;
+        }
+        return false;
+    }).length; 
+    console.warn('copyToClipboard() copied: '+copiedUrls + ' countSuccess: '+countSuccess);
 
-    activityIndicator.hide();
-    $.uploadButton.remove(activityIndicator);
-    $.uploadButton.enabled = true;
-    $.uploadButton.title = 'Take another';     
+    if (countSuccess === 0) {
+        return;
+    }
+    if (countSuccess === 1) {
+        Ti.UI.Clipboard.clearText();
+        sessionActivity.forEach(item => {
+            if (item.status === 'success') {
+                Ti.UI.Clipboard.setText(item.url); 
+              
+            }
+        });    
+        _parms.callback && _parms.callback({
+            message:  'Success!\nURL copied to clipboard. Paste in FOPs'
+        });    
+        return;                
+    }
+
+    if (copiedUrls < countSuccess) {
+        Ti.App.addEventListener('resume', onResume);
+
+        Ti.UI.Clipboard.clearText();
+        if (sessionActivity[copiedUrls].status === 'success') {
+            Ti.UI.Clipboard.setText(sessionActivity[copiedUrls].url); 
+            copiedUrls++;
+            _parms.callback && _parms.callback({
+                message:  'Success!\n' +copiedUrls+ ' of ' + countSuccess + ' URLs copied to clipboard. Paste in FOPs and come back to copy the next one.'
+            });
+        }
+    } else {
+        Ti.UI.Clipboard.clearText();
+        _parms.callback && _parms.callback({
+            message:  'Success!\n' +copiedUrls+ ' of ' + countSuccess + ' URLs already copied.'
+        });        
+    }
+
 }
 
 const configure = () => {
@@ -171,6 +232,7 @@ const configure = () => {
     $.retakeButton.enabled = false;
     $.uploadButton.enabled = false;
     postProcessedFiles = [];
+    sessionActivity = [];
     const _e = args.data;
 
     if (_e.success) {
@@ -353,21 +415,20 @@ const onRetakeButtonClick = () => {
     });      
     if (state === 'done') {
         // recopy
-        Ti.UI.Clipboard.clearText();
-        //Ti.UI.Clipboard.setText(postProcessedFile.publicUrl);
-        let urls = '';
-        Alloy.Globals.activityHistory.forEach(item => {
-            urls += item.url + ' ';
-        })
-        Ti.UI.Clipboard.setText(urls);        
-        alertDialogHelper.createTemporalMessage({
-            message: 'URL(s) copied to clipboard',
-            duration: 2000,
-            opacity: 0.8,
-            font: {
-                fontSize: 20
+        copyToClipboard({
+            callback: () => {
+                alertDialogHelper.createTemporalMessage({
+                    message: 'URL(s) copied to clipboard',
+                    duration: 2000,
+                    opacity: 0.8,
+                    font: {
+                        fontSize: 20
+                    }
+                }); 
             }
-        });        
+        });
+
+       
     } else {
         args.onRetake && args.onRetake();
         $.win.close();

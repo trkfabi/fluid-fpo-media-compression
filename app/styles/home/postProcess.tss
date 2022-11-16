@@ -68,6 +68,8 @@
 }
 "#messagesLabel": {
     top: 5,
+    left: 20,
+    right: 20,
     text: ' \n ',
     successColor: '#228B22',
     errorColor: '#DC143C'
