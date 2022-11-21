@@ -69,7 +69,8 @@
 		</manifest>
 	</android>
 	<modules>
-
+		<module platform="iphone">firebase.core</module>
+		<module platform="iphone">firebase.firestore</module>
 	</modules>
 	<deployment-targets>
 		<target device="android">true</target>
