@@ -1,5 +1,6 @@
 const moment = require('alloy/moment');
 const api = require('api').api;
+const firebaseStorageHelper = require('/helpers/firebaseStorageHelper');
 const alertDialogHelper = require("helpers/alertDialogHelper");
 const logProgram = 'home/postProcess';
 const args = $.args;
@@ -37,7 +38,7 @@ const doUploadFile = () => {
     let activityItem;
     let postProcessedFile = postProcessedFiles[actualItem];
 
-	let uploadFile = postProcessedFile.type === 'photo' ? postProcessedFile.blob: Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, postProcessedFile.name);
+	let uploadFile = postProcessedFile.type === 'photo' ? postProcessedFile.blob: Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, postProcessedFile.name).read();
     let fileSize = null;
     let fileSizeUnit = '';
 
@@ -57,6 +58,17 @@ const doUploadFile = () => {
         fileSizeUnit = 'mb';
     }
     
+    firebaseStorageHelper.upload({
+        data: uploadFile,
+        name: postProcessedFile.name,
+        callback: _fbResult => {
+            console.warn(JSON.stringify(_fbResult));
+            if (!_fbResult.success) {
+//`https://firebasestorage.googleapis.com/v0/b/fops-media-upload.appspot.com/o/FPOsUpload%2Fphoto_20221121090255707.png?alt=media&token=1c6959b1-d0e0-4e98-934f-f6946d37588f`
+            }
+        }
+    });
+
     api.media.upload({
         media: uploadFile,
         onSuccess: _e => {

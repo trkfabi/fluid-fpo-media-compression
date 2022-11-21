@@ -71,6 +71,7 @@
 	<modules>
 		<module platform="iphone">firebase.core</module>
 		<module platform="iphone">firebase.firestore</module>
+		<module platform="iphone">firebase.storage</module>
 	</modules>
 	<deployment-targets>
 		<target device="android">true</target>
