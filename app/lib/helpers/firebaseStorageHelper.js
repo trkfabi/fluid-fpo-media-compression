@@ -53,20 +53,17 @@ const firebaseStorage = (function () {
                     });
                     return;
                 }
-                storageReference.downloadURL(event => {
+                storageReference.downloadURL(_event => {
                     Alloy.Globals.doLog({
-                        text: 'downloadURL() result: ' + JSON.stringify(event),
+                        text: 'downloadURL() result: ' + JSON.stringify(_event),
                         program: logProgram
                     });      
-                    
+                    event.publicUrl = _event.url;
+                    _parms.callback && _parms.callback({
+                        success: event.success,
+                        data: event
+                    });                        
                 });
-
-                event.metadata.publicUrl = `https://firebasestorage.googleapis.com/v0/b/${event.metadata.bucket}/o/${event.metadata.path}`;
-                _parms.callback && _parms.callback({
-                    success: event.success,
-                    data: event
-                });                
-    
             }
         });        
     };

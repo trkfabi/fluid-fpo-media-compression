@@ -1,5 +1,5 @@
 const moment = require('alloy/moment');
-const api = require('api').api;
+//const api = require('api').api;
 const firebaseStorageHelper = require('/helpers/firebaseStorageHelper');
 const alertDialogHelper = require("helpers/alertDialogHelper");
 const logProgram = 'home/postProcess';
@@ -62,13 +62,99 @@ const doUploadFile = () => {
         data: uploadFile,
         name: postProcessedFile.name,
         callback: _fbResult => {
-            console.warn(JSON.stringify(_fbResult));
-            if (!_fbResult.success) {
-//`https://firebasestorage.googleapis.com/v0/b/fops-media-upload.appspot.com/o/FPOsUpload%2Fphoto_20221121090255707.png?alt=media&token=1c6959b1-d0e0-4e98-934f-f6946d37588f`
+            
+            if (_fbResult.success) {
+                Alloy.Globals.doLog({
+                    text: 'Upload success: ' + JSON.stringify(_fbResult),
+                    program: logProgram
+                });
+                state = 'done';
+                uploadedItems++;
+    
+                if (postProcessedFile.type === 'photo') {
+                    activityItem = {
+                        name: postProcessedFile.name,
+                        url: _fbResult.publicUrl,
+                        file: postProcessedFile.url,
+                        size: fileSize + ' ' + fileSizeUnit,
+                        type: postProcessedFile.type,
+                        date: moment().format("MMM D, LTS"),
+                        videothumbnail: '/images/videofile.png',
+                        status: 'success'
+                    };
+                } else {
+                    activityItem = {
+                        name: postProcessedFile.name,
+                        url:  _fbResult.publicUrl,
+                        file: postProcessedFile.url,
+                        size: fileSize + ' ' + fileSizeUnit,
+                        type: postProcessedFile.type,
+                        date: moment().format("MMM D, LTS"),
+                        videothumbnail: '/images/videofile.png',
+                        status: 'success' 
+                    };                
+                }
+    
+                sessionActivity.push(activityItem);
+    
+                activity.push(activityItem);
+                Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+                Alloy.Globals.activityHistory = activity;
+    
+                actualItem++;
+                if (actualItem < postProcessedFiles.length) {
+                    return doUploadFile();
+                }
+    
+                doEndUploading();                
+            } else {
+                Alloy.Globals.doLog({
+                    text: 'Upload error: ' + JSON.stringify(_fbResult),
+                    program: logProgram
+                });
+    
+                if (postProcessedFiles.length === 1) {
+                    state = 'error';
+                    Ti.UI.Clipboard.clearText();
+    
+                    $.messagesLabel.color = $.messagesLabel.errorColor;
+                    $.messagesLabel.text = 'Error!\nCould not upload file.'
+                    
+                    $.retakeButton.enabled = true;
+                    
+                    activityIndicator.hide();
+                    $.uploadButton.remove(activityIndicator);
+                    $.uploadButton.enabled = true;
+                    $.uploadButton.title = 'Retry'; 
+                } else {
+                    state = 'done';
+                }
+    
+                activityItem = {
+                    name: postProcessedFile.name,
+                    url: '',
+                    file: postProcessedFile.url,
+                    size: fileSize + ' ' + fileSizeUnit,
+                    type: postProcessedFile.type,
+                    date: moment().format("MMM D, LTS"),
+                    videothumbnail: '/images/videofile.png',
+                    status: 'error' 
+                }; 
+    
+                activity.push(activityItem);
+                Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+                Alloy.Globals.activityHistory = activity;    
+                
+                actualItem++;
+                if (actualItem < postProcessedFiles.length) {
+                    return doUploadFile();
+                }
+    
+                doEndUploading();  
             }
         }
     });
-
+    /*
     api.media.upload({
         media: uploadFile,
         onSuccess: _e => {
@@ -163,7 +249,7 @@ const doUploadFile = () => {
             doEndUploading();            
         }
     });
-
+    */
 };
 
 function doEndUploading() {
