@@ -34,23 +34,9 @@ const doUploadFile = () => {
         text: 'doUploadFile() actualItem: ' +actualItem,
         program: logProgram
     });       
-    
+    let activityItem;
     let postProcessedFile = postProcessedFiles[actualItem];
-    //console.warn(JSON.stringify(postProcessedFile ));
-    if (postProcessedFile.type === 'video') {
-        Alloy.Globals.doLog({
-            text: 'Backend Endpoint does not allow video uploading yet',
-            program: logProgram
-        });          
-        
-        actualItem++;
-        if (actualItem < postProcessedFiles.length) {
-            return doUploadFile();
-        }
-        state = 'done';
-        return doEndUploading();
-    }
-    
+
 	let uploadFile = postProcessedFile.type === 'photo' ? postProcessedFile.blob: Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, postProcessedFile.name);
     let fileSize = null;
     let fileSizeUnit = '';
@@ -81,9 +67,6 @@ const doUploadFile = () => {
             state = 'done';
             uploadedItems++;
 
-            // large-sq is 1024x1024
-            // url is 640x640
-            let activityItem;
             if (postProcessedFile.type === 'photo') {
                 activityItem = {
                     name: postProcessedFile.name,
@@ -100,8 +83,8 @@ const doUploadFile = () => {
                 activityItem = {
                     name: postProcessedFile.name,
                     url:  '', //_e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
-                    file: '', //postProcessedFile.url,
-                    size: '', //fileSize + ' ' + fileSizeUnit,
+                    file: postProcessedFile.url,
+                    size: fileSize + ' ' + fileSizeUnit,
                     type: postProcessedFile.type,
                     date: moment().format("MMM D, LTS"),
                     videothumbnail: '/images/videofile.png',
@@ -127,22 +110,27 @@ const doUploadFile = () => {
                 text: 'Upload error: ' + JSON.stringify(_e),
                 program: logProgram
             });
-            state = 'error';
-            Ti.UI.Clipboard.clearText();
 
-            $.messagesLabel.color = $.messagesLabel.errorColor;
-            $.messagesLabel.text = 'Error!\nCould not upload file.'
-            
-            $.retakeButton.enabled = true;
-            
-            activityIndicator.hide();
-            $.uploadButton.remove(activityIndicator);
-            $.uploadButton.enabled = true;
-            $.uploadButton.title = 'Retry'; 
+            if (postProcessedFiles.length === 1) {
+                state = 'error';
+                Ti.UI.Clipboard.clearText();
 
-            let activityItem = {
+                $.messagesLabel.color = $.messagesLabel.errorColor;
+                $.messagesLabel.text = 'Error!\nCould not upload file.'
+                
+                $.retakeButton.enabled = true;
+                
+                activityIndicator.hide();
+                $.uploadButton.remove(activityIndicator);
+                $.uploadButton.enabled = true;
+                $.uploadButton.title = 'Retry'; 
+            } else {
+                state = 'done';
+            }
+
+            activityItem = {
                 name: postProcessedFile.name,
-                url: postProcessedFile.url,
+                url: '',
                 file: postProcessedFile.url,
                 size: fileSize + ' ' + fileSizeUnit,
                 type: postProcessedFile.type,
@@ -153,7 +141,14 @@ const doUploadFile = () => {
 
             activity.push(activityItem);
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-            Alloy.Globals.activityHistory = activity;            
+            Alloy.Globals.activityHistory = activity;    
+            
+            actualItem++;
+            if (actualItem < postProcessedFiles.length) {
+                return doUploadFile();
+            }
+
+            doEndUploading();            
         }
     });
 
@@ -166,7 +161,7 @@ function doEndUploading() {
     });     
     copyToClipboard({
         callback: (_result) => {
-            $.messagesTitleLabel.color = _result.messageColor || $.messagesTitleLabel.successColor;
+            $.messagesTitleLabel.color = _result.messageTitleColor || $.messagesTitleLabel.successColor;
             $.messagesTitleLabel.text = _result.messageTitle;
 
             $.messagesLabel.color = _result.messageColor || $.messagesLabel.successColor;
@@ -201,43 +196,51 @@ function copyToClipboard(_parms) {
         _parms.callback && _parms.callback({
             messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' could be uploaded!',
             message:  'Please select another file.',
-            messageColor: $.messagesTitleLabel.errorColor
+            messageColor: $.messagesLabel.errorColor,
+            messageTitleColor: $.messagesTitleLabel.errorColor
         });           
         return;
     }
     Ti.App.addEventListener('resume', onResume);
-
-    // if (countSuccess === 1) {
-    //     Ti.UI.Clipboard.clearText();
-    //     sessionActivity.forEach(item => {
-    //         if (item.status === 'success') {
-    //             Ti.UI.Clipboard.setText(item.url); 
-              
-    //         }
-    //     });    
-    //     copiedUrls++;
-    //     _parms.callback && _parms.callback({
-    //         messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' successfully uploaded!',
-    //         message:  'URL copied to clipboard. Paste in FOPs'
-    //     });    
-    //     return;                
-    // }
 
     if (copiedUrls < countSuccess) {
         Ti.UI.Clipboard.clearText();
         if (sessionActivity[copiedUrls].status === 'success') {
             Ti.UI.Clipboard.setText(sessionActivity[copiedUrls].url); 
             copiedUrls++;
+            setTimeout(()=>{
+                alertDialogHelper.createTemporalMessage({
+                    message: 'Link #' + copiedUrls + ' of ' + countSuccess + ' copied to clipboard.',
+                    duration: 3000,
+                    opacity: 0.8,
+                    font: {
+                        fontSize: 20
+                    }
+                }); 
+            }, 500);            
             _parms.callback && _parms.callback({
                 messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' successfully uploaded!',
-                message:  copiedUrls+ ' of ' + countSuccess + ' URLs copied to clipboard. Paste in FOPs' +  (countSuccess===1 ? '' : ' and come back to copy the next one.')
+                message:  copiedUrls+ ' of ' + countSuccess + ' URLs copied to clipboard. Paste in FOPs' +  (countSuccess===1 ? '' : ' and come back to copy the next one.'),
+                messageColor: $.messagesLabel.normalColor,
+                messageTitleColor: $.messagesTitleLabel.successColor                
             });
         }
     } else {
-        
+        setTimeout(()=>{
+            alertDialogHelper.createTemporalMessage({
+                message: 'No more links to copy!',
+                duration: 2000,
+                opacity: 0.8,
+                font: {
+                    fontSize: 20
+                }
+            }); 
+        }, 500);         
         _parms.callback && _parms.callback({
             messageTitle: countSuccess+ ' of ' + postProcessedFiles.length + ' successfully uploaded!',
-            message:  copiedUrls+ ' of ' + countSuccess + ' URLs already copied.'
+            message:  copiedUrls+ ' of ' + countSuccess + ' URLs already copied.',
+            messageColor: $.messagesLabel.normalColor,
+            messageTitleColor: $.messagesTitleLabel.successColor               
         });        
     }
 
@@ -453,20 +456,6 @@ const onRetakeButtonClick = () => {
                 $.uploadButton.title = 'Take another'; 
             }
         });        
-        // copyToClipboard({
-        //     callback: () => {
-        //         alertDialogHelper.createTemporalMessage({
-        //             message: 'URL(s) copied to clipboard',
-        //             duration: 2000,
-        //             opacity: 0.8,
-        //             font: {
-        //                 fontSize: 20
-        //             }
-        //         }); 
-        //     }
-        // });
-
-       
     } else {
         args.onRetake && args.onRetake();
         $.win.close();

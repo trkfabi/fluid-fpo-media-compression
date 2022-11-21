@@ -71,7 +71,8 @@
     left: 20,
     right: 20,
     successColor: '#228B22',
-    errorColor: '#DC143C'
+    errorColor: '#DC143C',
+    normalColor: '#444444'
 }
 "#messagesLabel": {
     top: 5,
@@ -79,7 +80,8 @@
     right: 20,
     text: ' \n ',
     successColor: '#228B22',
-    errorColor: '#DC143C'
+    errorColor: '#DC143C',
+    normalColor: '#444444'
 }
 "#retakeButton": {
     title: 'Retake',
