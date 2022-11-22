@@ -43,8 +43,6 @@ const firebaseStorage = (function () {
                     text: 'upload() result: ' + JSON.stringify(event),
                     program: logProgram
                 });      
-                console.warn('storageReference.fullPath: ' + storageReference.fullPath);
-                console.warn('storageReference.name: ' + storageReference.name);
                 if (!event.success) {
                     console.error('Could not upload: ', event.error);
                     _parms.callback && _parms.callback({

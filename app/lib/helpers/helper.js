@@ -76,50 +76,66 @@ var helper = (function () {
             fileSize = fileSize.toFixed(2);
             fileSizeUnit = 'mb';
         }
-        const api = require('api').api;
-        api.media.upload({
-            media: uploadFile,
-            onSuccess: _e => {
-                Alloy.Globals.doLog({
-                    text: 'Upload success: ' + JSON.stringify(_e),
-                    program: logProgram
-                });
-                // large-sq is 1024x1024
-                // url is 640x640
-                let activityItem = {
-                    url: _e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
-                    file: postProcessedFile.url,
-                    size: fileSize + ' ' + fileSizeUnit,
-                    type: postProcessedFile.type,
-                    date: moment().format("MMM D, LTS"),
-                    videothumbnail: '/images/videofile.png',
-                    status: 'success',
-                    name: postProcessedFile.name
-                };
-                _parms.onSuccess && _parms.onSuccess({
-                    item: activityItem
-                });
-            },
-            onError: _e => {
-                Alloy.Globals.doLog({
-                    text: 'Upload error: ' + JSON.stringify(_e),
-                    program: logProgram
-                });
+        let activityItem;
+        firebaseStorageHelper.upload({
+            data: uploadFile,
+            name: postProcessedFile.name,
+            callback: _fbResult => {
                 
-                let activityItem = {
-                    url: postProcessedFile.url,
-                    file: postProcessedFile.url,
-                    size: fileSize + ' ' + fileSizeUnit,
-                    type: postProcessedFile.type,
-                    date: moment().format("MMM D, LTS"),
-                    videothumbnail: '/images/videofile.png',
-                    status: 'error',
-                    name: postProcessedFile.name
-                };            
-                _parms.onError && _parms.onError({
-                    item: activityItem,
-                    error: _e
-                });
+                if (_fbResult.success) {
+                    Alloy.Globals.doLog({
+                        text: 'Upload success: ' + JSON.stringify(_fbResult),
+                        program: logProgram
+                    });
+                    
+                    if (postProcessedFile.type === 'photo') {
+                        activityItem = {
+                            name: postProcessedFile.name,
+                            url: _fbResult.publicUrl,
+                            file: postProcessedFile.url,
+                            size: fileSize + ' ' + fileSizeUnit,
+                            type: postProcessedFile.type,
+                            date: moment().format("MMM D, LTS"),
+                            videothumbnail: '/images/videofile.png',
+                            status: 'success'
+                        };
+                    } else {
+                        activityItem = {
+                            name: postProcessedFile.name,
+                            url:  _fbResult.publicUrl,
+                            file: postProcessedFile.url,
+                            size: fileSize + ' ' + fileSizeUnit,
+                            type: postProcessedFile.type,
+                            date: moment().format("MMM D, LTS"),
+                            videothumbnail: '/images/videofile.png',
+                            status: 'success' 
+                        };                
+                    }
+                    _parms.onSuccess && _parms.onSuccess({
+                        item: activityItem
+                    });
+                                  
+                } else {
+                    Alloy.Globals.doLog({
+                        text: 'Upload error: ' + JSON.stringify(_fbResult),
+                        program: logProgram
+                    });
+        
+                    activityItem = {
+                        name: postProcessedFile.name,
+                        url: '',
+                        file: postProcessedFile.url,
+                        size: fileSize + ' ' + fileSizeUnit,
+                        type: postProcessedFile.type,
+                        date: moment().format("MMM D, LTS"),
+                        videothumbnail: '/images/videofile.png',
+                        status: 'error' 
+                    }; 
+                    _parms.onError && _parms.onError({
+                        item: activityItem,
+                        error: _fbResult
+                    }); 
+                }
             }
         });
     };    

@@ -1,5 +1,4 @@
 const moment = require('alloy/moment');
-//const api = require('api').api;
 const firebaseStorageHelper = require('/helpers/firebaseStorageHelper');
 const alertDialogHelper = require("helpers/alertDialogHelper");
 const logProgram = 'home/postProcess';
@@ -19,7 +18,7 @@ const blinking = Ti.UI.createAnimation({
     opacity: 0.3,
     duration : 500,
     autoreverse : true,
-    repeat : 2
+    repeat : 3
 });
 
 const activityIndicator = Ti.UI.createActivityIndicator({
@@ -74,7 +73,7 @@ const doUploadFile = () => {
                 if (postProcessedFile.type === 'photo') {
                     activityItem = {
                         name: postProcessedFile.name,
-                        url: _fbResult.publicUrl,
+                        url: _fbResult.data.publicUrl,
                         file: postProcessedFile.url,
                         size: fileSize + ' ' + fileSizeUnit,
                         type: postProcessedFile.type,
@@ -85,7 +84,7 @@ const doUploadFile = () => {
                 } else {
                     activityItem = {
                         name: postProcessedFile.name,
-                        url:  _fbResult.publicUrl,
+                        url:  _fbResult.data.publicUrl,
                         file: postProcessedFile.url,
                         size: fileSize + ' ' + fileSizeUnit,
                         type: postProcessedFile.type,
@@ -154,102 +153,6 @@ const doUploadFile = () => {
             }
         }
     });
-    /*
-    api.media.upload({
-        media: uploadFile,
-        onSuccess: _e => {
-            Alloy.Globals.doLog({
-                text: 'Upload success: ' + JSON.stringify(_e),
-                program: logProgram
-            });
-            state = 'done';
-            uploadedItems++;
-
-            if (postProcessedFile.type === 'photo') {
-                activityItem = {
-                    name: postProcessedFile.name,
-                    url: _e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
-                    file: postProcessedFile.url,
-                    size: fileSize + ' ' + fileSizeUnit,
-                    type: postProcessedFile.type,
-                    date: moment().format("MMM D, LTS"),
-                    videothumbnail: '/images/videofile.png',
-                    status: 'success'
-                };
-            } else {
-                // videos ??
-                activityItem = {
-                    name: postProcessedFile.name,
-                    url:  '', //_e.data && _e.data.data && _e.data.data.attributes && _e.data.data.attributes['large-sq'],
-                    file: postProcessedFile.url,
-                    size: fileSize + ' ' + fileSizeUnit,
-                    type: postProcessedFile.type,
-                    date: moment().format("MMM D, LTS"),
-                    videothumbnail: '/images/videofile.png',
-                    status: 'error' 
-                };                
-            }
-
-            sessionActivity.push(activityItem);
-
-            activity.push(activityItem);
-            Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-            Alloy.Globals.activityHistory = activity;
-
-            actualItem++;
-            if (actualItem < postProcessedFiles.length) {
-                return doUploadFile();
-            }
-
-            doEndUploading();
-        },
-        onError: _e => {
-            Alloy.Globals.doLog({
-                text: 'Upload error: ' + JSON.stringify(_e),
-                program: logProgram
-            });
-
-            if (postProcessedFiles.length === 1) {
-                state = 'error';
-                Ti.UI.Clipboard.clearText();
-
-                $.messagesLabel.color = $.messagesLabel.errorColor;
-                $.messagesLabel.text = 'Error!\nCould not upload file.'
-                
-                $.retakeButton.enabled = true;
-                
-                activityIndicator.hide();
-                $.uploadButton.remove(activityIndicator);
-                $.uploadButton.enabled = true;
-                $.uploadButton.title = 'Retry'; 
-            } else {
-                state = 'done';
-            }
-
-            activityItem = {
-                name: postProcessedFile.name,
-                url: '',
-                file: postProcessedFile.url,
-                size: fileSize + ' ' + fileSizeUnit,
-                type: postProcessedFile.type,
-                date: moment().format("MMM D, LTS"),
-                videothumbnail: '/images/videofile.png',
-                status: 'error' 
-            }; 
-
-            activity.push(activityItem);
-            Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-            Alloy.Globals.activityHistory = activity;    
-            
-            actualItem++;
-            if (actualItem < postProcessedFiles.length) {
-                return doUploadFile();
-            }
-
-            doEndUploading();            
-        }
-    });
-    */
 };
 
 function doEndUploading() {
@@ -257,6 +160,9 @@ function doEndUploading() {
         text: 'doEndUploading()',
         program: logProgram
     });     
+
+    //console.warn('Alloy.Globals.activityHistory: ' + JSON.stringify(Alloy.Globals.activityHistory));
+
     copyToClipboard({
         callback: (_result) => {
             $.messagesTitleLabel.color = _result.messageTitleColor || $.messagesTitleLabel.successColor;
@@ -519,6 +425,7 @@ const onUploadButtonClick = () => {
     if (state === 'done') {
         // retake
         args.onRetake && args.onRetake();
+        Ti.App.removeEventListener('resume', onResume);
         $.win.close();
     } else {
         if (state !== 'error') {
@@ -535,6 +442,7 @@ const onRetakeButtonClick = () => {
     });      
     if (state === 'done') {
         // recopy
+        Ti.App.removeEventListener('resume', onResume);
         copiedUrls = 0;
         copyToClipboard({
             callback: (_result) => {
@@ -556,6 +464,7 @@ const onRetakeButtonClick = () => {
         });        
     } else {
         args.onRetake && args.onRetake();
+        Ti.App.removeEventListener('resume', onResume);
         $.win.close();
     }
 };
