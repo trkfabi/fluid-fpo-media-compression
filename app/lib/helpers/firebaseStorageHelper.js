@@ -4,7 +4,7 @@ const logProgram = 'lib/helpers/firebaseStorageHelper';
 
 OS_IOS && TiFirebaseCore.configure();
 
-const defaultUploadFolder = 'FPOsUpload';
+const defaultUploadFolder = 'FOPsUpload';
 
 
 const defaultMaxSize = 100000;
