@@ -4,7 +4,7 @@ const logProgram = 'lib/helpers/firebaseStorageHelper';
 
 OS_IOS && TiFirebaseCore.configure();
 
-const defaultUploadFolder = 'FOPsUpload';
+const defaultUploadFolder = Alloy.Globals.defaultUploadFolder;
 
 
 const defaultMaxSize = 100000;

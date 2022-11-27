@@ -4,6 +4,8 @@ Alloy.Globals.allowVideoFiles = true;
 // SUPPORT MULTIPLE PICS and VIDEOS
 Alloy.Globals.allowMulitpleFiles = true;
 
+Alloy.Globals.defaultUploadFolder = 'fopsupload';
+
 Alloy.Globals.isInSandboxMode = true;
 
 Alloy.Globals.authorizationTokenV2 = '';
