@@ -23,6 +23,7 @@ const checkStoragePermissions = () => {
         Ti.Android.requestPermissions("android.permission.WRITE_EXTERNAL_STORAGE", function (e) {
             if (e.success) {
                 $.cameraPermission.visible = false;
+                $.activity.show();
                 openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);                
             } else {
                 $.cameraPermission.visible = true;
@@ -31,6 +32,7 @@ const checkStoragePermissions = () => {
         });
     } else {
         $.cameraPermission.visible = false;
+        $.activity.show();
         openCamera(Titanium.Media.MEDIA_TYPE_PHOTO); 
     }
 };
@@ -208,30 +210,7 @@ const openCamera = (_mediaType) => {
                 if (_e.success) {
        
                     if (Alloy.Globals.onlySaveToGallery) {
-
-                        // just for testing
-                        Ti.Media.saveToPhotoGallery(
-                            _e.media, 
-                            {
-                                success: _saveResult => {
-                                    Alloy.Globals.doLog({
-                                        text: 'Success ORIGINAL: ' + JSON.stringify(_saveResult),
-                                        program: logProgram
-                                    });                                                 
-                                },
-                                error: _saveResult => {
-                                    Alloy.Globals.doLog({
-                                        text: 'Error: ORIGINAL: ' + JSON.stringify(_saveResult),
-                                        program: logProgram
-                                    });                                                   
-                                }   
-                            }                                      
-                        );                        
-
-
-
-                        helper.processMedia(_e, function(_result) {
-                            console.warn(JSON.stringify(_result));
+                        helper.processMedia(_e, function(_result) {                            
                             if (_result.success) {
                                 var compressedFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, _result.data.name);
                                 if (_result.data.type === 'video') {
@@ -425,6 +404,7 @@ const checkCameraPermissions = () => {
     if (OS_IOS) {
         if (Ti.Media.hasCameraPermissions() && Ti.Media.hasAudioRecorderPermissions()) {
             $.cameraPermission.visible = false;
+            $.activity.show();
             openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
         } else {
             Ti.Media.requestCameraPermissions(function (event) {
@@ -437,6 +417,7 @@ const checkCameraPermissions = () => {
                         $.cameraPermission.visible = true;
                         return false;
                     }
+                    $.activity.show();
                     openCamera(Titanium.Media.MEDIA_TYPE_PHOTO);
                 });
             });

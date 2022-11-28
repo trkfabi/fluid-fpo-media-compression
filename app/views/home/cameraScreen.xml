@@ -13,6 +13,7 @@
                 <Label id="versionLabel" />
             </View>
         </View>   
+        <ActivityIndicator id="activity" />
         <View id="container"/> 
         <!-- <View id="container">
             <Label id="cameraPermission" />
