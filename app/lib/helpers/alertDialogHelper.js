@@ -20,8 +20,17 @@ var alertDialogHelper = (function () {
 		defaultTitle = _title || '';
 	}
 
+	function hideMessage(_params) {
+		_params = _params || {};
+		_params.viewChild = _params.viewChild || null;
+		_params.viewParent = _params.viewParent || null;
+		_params.viewParent && _params.viewChild && _params.viewParent.remove(_params.viewChild);
+	}
+
 	function createTemporalMessage(_params) {
 		_params = _params || {};
+		_params.returnView = _params.returnView || false;
+		_params.viewParent = _params.viewParent || null;
 		_params.message = _params.message || '';
 		_params.backgroundColor = _params.backgroundColor || '#CCCCCC';
 		_params.color = _params.color || '#000000';
@@ -65,17 +74,29 @@ var alertDialogHelper = (function () {
 		} else if (_params.hasOwnProperty('bottom')) {
 			view.bottom = _params.bottom;
 		}
-		var win = Ti.UI.createWindow({
-			backgroundColor: 'transparent'
-		});
 		view.add(separatorTop);
 		view.add(label);
-		view.add(separatorBottom);
-		win.add(view);
-		win.open();
+		view.add(separatorBottom);		
+		if (_params.returnView && _params.viewParent) {
+			view.zIndex = 9999;
+			_params.viewParent.add(view);
 
-		_params.duration > 0 && setTimeout(win.close, _params.duration);
-		return win;
+			_params.duration > 0 && setTimeout(function(){
+				_params.viewParent.remove(view);
+			}, _params.duration);
+
+			return view;
+		} else {
+			var win = Ti.UI.createWindow({
+				backgroundColor: 'transparent'
+			});
+			win.add(view);
+			win.open();
+	
+			_params.duration > 0 && setTimeout(win.close, _params.duration);
+			return win;
+		}
+
 	}
 	/*
 	 * @method createAlertDialog
@@ -177,7 +198,8 @@ var alertDialogHelper = (function () {
 		createConfirmDialog: createConfirmDialog,
 		createOptionDialog: createOptionDialog,
 
-		createTemporalMessage: createTemporalMessage
+		createTemporalMessage: createTemporalMessage,
+		hideMessage: hideMessage
 	};
 })();
 

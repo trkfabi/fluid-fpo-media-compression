@@ -9,7 +9,7 @@
     left: 0,
     right: 0,
     height: 100,
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#000000'
 }
 "#title": {
     top: 60,
@@ -22,7 +22,7 @@
     left: 0,
     right: 0,
     height: 240,
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#000000'
 }
 "#historyButton": {
     bottom: 20,
@@ -31,12 +31,26 @@
     height: 25,
     width: 25
 }
+"#historyButton[if=Alloy.Globals.onlySaveToGallery]": {
+    visible: false
+}
 "#mediaTypeButton": {
     title: 'Switch to Video',
     width: 150,
     height: 40,
     top: 20,
     visible: false
+}
+"#thumb": {
+    top: 20,
+    left: 20,
+    borderColor: "#cccccc",
+    borderWidth: 2,
+    borderRadius: 5,
+    height: 60,
+    width: 60,
+    visible: false,
+    zIndex: 20
 }
 "#genericLabel": {
     color: "#02B3E4",
@@ -47,6 +61,9 @@
     top: 20,
     textAlign: 'left',
     text: 'Items: 0'
+}
+"#genericLabel[if=Alloy.Globals.onlySaveToGallery]": {
+    visible: false
 }
 "#recordingLabel": {
     color: 'red',
@@ -63,7 +80,7 @@
     left: 0,
     right: 0,
     height: 150,
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#000000'
 }
 "#flashToggleButton": {
     left: 30,
@@ -85,7 +102,10 @@
     right: 30,
     backgroundImage: '/images/btnGallery.png',
     height: 50,
-    width: 50    
+    width: 50
+}
+"#galleryButton[if=Alloy.Globals.onlySaveToGallery]": {
+    visible: false
 }
 "#nextButton": {
     title: 'Next',
@@ -94,6 +114,9 @@
     top: 20,
     right: 20,
     visible: Alloy.Globals.allowMultipleFiles
+}
+"#nextButton[if=Alloy.Globals.onlySaveToGallery]": {
+    visible: false
 }
 "#versionLabel": {
     color: "#02B3E4",

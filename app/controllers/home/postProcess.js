@@ -8,7 +8,6 @@ let activity = Alloy.Globals.activityHistory;
 
 let postProcessedFiles = [];
 let postProcessedFile = {};
-let desiredSize = 640;
 let actualItem, foundImages, foundVideos, uploadedItems;
 let copiedUrls = 0, countSuccess = 0, sessionActivity = [];
 
@@ -357,7 +356,7 @@ function processItem(_items, _totalItems) {
         }        
         //let isLandscape = _e.media.width > _e.media.height;
         let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
-        let newW = desiredSize;
+        let newW = Alloy.Globals.photoDesiredSize;
         let newH = newW * ratio;
         let resizedImage = _e.media.imageAsResized(newW, newH);
 

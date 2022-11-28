@@ -75,6 +75,7 @@ const onSnapButtonClick = () => {
         if (snapButtonStatus === 'READY') {
             $.snapButton.backgroundImage = $.snapButton.customImageRecording;
             $.snapButton.enabled = true;
+            $.thumb.visible = false;
             snapButtonStatus = 'RECORDING';
             $.recordingLabel.text = '00:00:00';
             $.recordingLabel.visible = true; 
@@ -90,17 +91,19 @@ const onSnapButtonClick = () => {
     } else {
         if (snapButtonStatus === 'READY') {
             $.snapButton.backgroundImage = $.snapButton.customImageDisabled;
-            $.snapButton.enabled = false;            
+            $.snapButton.enabled = false;    
+            $.thumb.visible = false;        
             snapButtonStatus = 'DISABLED';
         } else {
             $.snapButton.backgroundImage = $.snapButton.customImageEnabled;
             $.snapButton.enabled = true;          
-            snapButtonStatus = 'READY';            
+            snapButtonStatus = 'READY';        
         }        
     }
     args.onSnap();
 }
 $.snapButton.addEventListener('click', onSnapButtonClick);
+
 
 const onGalleryClick = () => {
     Alloy.Globals.doLog({
@@ -160,3 +163,33 @@ const onNextButtonClick = () => {
     }
 }
 $.nextButton.addEventListener('click', onNextButtonClick);
+
+let lastChileView;
+$.displayMessage = _data => {
+    if (lastChileView) {
+        $.hideMessage();
+    }
+    _data.viewParent = $.overlayContainer;
+    _data.returnView = true;
+    lastChileView = alertDialogHelper.createTemporalMessage(_data);
+};
+$.hideMessage = () => {
+    let _data = {};
+    _data.viewParent = $.overlayContainer;
+    _data.viewChild = lastChileView;
+    lastChileView = null;
+    alertDialogHelper.hideMessage(_data);
+};
+$.displayThumb = (_data) => {
+    if (Alloy.Globals.onlySaveToGallery) {
+        if (_data.rotate) {
+            var t = Ti.UI.createMatrix2D(); 
+            var spin = Ti.UI.createAnimation();
+            t = t.rotate(90);
+            spin.transform = t;
+            $.thumb.animate(spin);
+        }
+        $.thumb.image = _data.thumbnail;
+        $.thumb.visible = _data.visible;
+    }
+}

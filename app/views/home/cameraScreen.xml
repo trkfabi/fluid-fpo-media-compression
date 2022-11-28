@@ -1,7 +1,21 @@
 <Alloy>
     <Window id="win" navBarHidden="true">
-        <View id="container">
+        <View id="overlayContainer">
+            <View id="overlayTop">
+                <ImageView id="title" />
+            </View>
             <Label id="cameraPermission" />
-        </View>
+            <View id="overlayBottom">
+                <View id="buttonsRow">
+                    <Button id="flashToggleButton" />
+                    <Button id="snapButton" />
+                </View>
+                <Label id="versionLabel" />
+            </View>
+        </View>   
+        <View id="container"/> 
+        <!-- <View id="container">
+            <Label id="cameraPermission" />
+        </View> -->
     </Window>
 </Alloy>

@@ -1,6 +1,8 @@
+const moment = require('alloy/moment');
 const appNavigation = require('appNavigation');
 const hapticFeedbackHelper = require('helpers/hapticFeedbackHelper');
 const alertDialogHelper = require("helpers/alertDialogHelper");
+const helper = require('helpers/helper');
 const logProgram = 'home/cameraScreen';
 const args = $.args;
 
@@ -33,6 +35,19 @@ const checkStoragePermissions = () => {
     }
 };
 
+const checkGalleryPermissions = _callback => {
+    if (Ti.Media.hasPhotoGalleryPermissions()) {
+        _callback && _callback();
+    } else {
+        Ti.Media.requestPhotoGalleryPermissions(function(event){
+            if (!event.success) {
+                return false;
+            }                
+            _callback && _callback();
+        });
+    }    
+}
+
 const openCamera = (_mediaType) => {
     _mediaType = _mediaType || Ti.Media.MEDIA_TYPE_PHOTO;
     Alloy.Globals.doLog({
@@ -52,11 +67,26 @@ const openCamera = (_mediaType) => {
         },
         onSnap: () => {
             hapticFeedbackHelper.impact();
+
             if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
+                Alloy.Globals.onlySaveToGallery && cameraOverlayController.displayMessage({
+                    message: 'Please wait...',
+                    opacity: 0.8,
+                    font: {
+                        fontSize: 20
+                    }
+                });                 
                 Ti.Media.takePicture();
             } else {
                 if (isRecording) {
-                    Ti.Media.stopVideoCapture();                    
+                    Ti.Media.stopVideoCapture();  
+                    Alloy.Globals.onlySaveToGallery && cameraOverlayController.displayMessage({
+                        message: 'Please wait...',
+                        opacity: 0.8,
+                        font: {
+                            fontSize: 20
+                        }
+                    });                                       
                 } else {
                     Ti.Media.startVideoCapture(); 
                 }
@@ -64,16 +94,7 @@ const openCamera = (_mediaType) => {
             }
         },
         onGallery: () => {
-            if (Ti.Media.hasPhotoGalleryPermissions()) {
-                openGallery();
-            } else {
-                Ti.Media.requestPhotoGalleryPermissions(function(event){
-                    if (!event.success) {
-                        return false;
-                    }                
-                    openGallery();
-                });
-            }
+            checkGalleryPermissions(openGallery);
         },
         onChangeMediaType: () => {
             if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
@@ -168,12 +189,12 @@ const openCamera = (_mediaType) => {
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
         videoQuality: Ti.Media.QUALITY_MEDIUM,
         transform: transformTranslate,
+        animated: false,
         success: _e => {
             Alloy.Globals.doLog({
                 text: 'Camera success: ' + JSON.stringify(_e),
                 program: logProgram
             }); 
-            
 
             if (Alloy.Globals.allowMulitpleFiles) {
                 if (_mediaType === Ti.Media.MEDIA_TYPE_PHOTO) {
@@ -185,47 +206,104 @@ const openCamera = (_mediaType) => {
             } else {
                 cameraOverlayController.onCameraDone();
                 if (_e.success) {
-                    var anyValid = false;
-                    if (_e.images && _e.images.length > 0) {
-                        const validImages = _e.images.filter(obj => {
-                            if (obj.success) {
-                              return true;
+       
+                    if (Alloy.Globals.onlySaveToGallery) {
+
+                        // just for testing
+                        Ti.Media.saveToPhotoGallery(
+                            _e.media, 
+                            {
+                                success: _saveResult => {
+                                    Alloy.Globals.doLog({
+                                        text: 'Success ORIGINAL: ' + JSON.stringify(_saveResult),
+                                        program: logProgram
+                                    });                                                 
+                                },
+                                error: _saveResult => {
+                                    Alloy.Globals.doLog({
+                                        text: 'Error: ORIGINAL: ' + JSON.stringify(_saveResult),
+                                        program: logProgram
+                                    });                                                   
+                                }   
+                            }                                      
+                        );                        
+
+
+
+                        helper.processMedia(_e, function(_result) {
+                            console.warn(JSON.stringify(_result));
+                            if (_result.success) {
+                                var compressedFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, _result.data.name);
+                                if (_result.data.type === 'video') {
+                                    let videoPlayer = Ti.Media.createVideoPlayer({
+                                        autoplay: false,
+                                        width: Ti.Platform.displayCaps.platformWidth,
+                                        height: Ti.Platform.displayCaps.platformWidth,
+                                        url: compressedFile.nativePath
+                                    }); 
+                                    videoPlayer.requestThumbnailImagesAtTimes([0], 0, (_response) => {
+                                        _response.success && cameraOverlayController.displayThumb({
+                                            thumbnail: _response.image,
+                                            visible: true,
+                                            rotate: true
+                                        });
+                                    });
+                                } else {
+                                    cameraOverlayController.displayThumb({
+                                        thumbnail: compressedFile.read(),
+                                        visible: true
+                                    });
+                                }
+                                Ti.Media.saveToPhotoGallery(
+                                    compressedFile.read(), 
+                                    {
+                                        success: _saveResult => {
+                                            Alloy.Globals.doLog({
+                                                text: 'Success: ' + JSON.stringify(_saveResult),
+                                                program: logProgram
+                                            });                                            
+                                            cameraOverlayController.displayMessage({
+                                                message: 'Sucessfully saved to gallery',
+                                                duration: 1000,
+                                                opacity: 0.8,
+                                                color: '#228B22',
+                                                font: {
+                                                    fontSize: 20
+                                                }
+                                            });                                                                                       
+                                            compressedFile.deleteFile();
+                                        },
+                                        error: _saveResult => {
+                                            Alloy.Globals.doLog({
+                                                text: 'Error: ' + JSON.stringify(_saveResult),
+                                                program: logProgram
+                                            });                                                   
+                                            cameraOverlayController.displayMessage({
+                                                message: 'Error: Could not save file to gallery',
+                                                duration: 1000,
+                                                color: '#DC143C',
+                                                opacity: 0.8,
+                                                font: {
+                                                    fontSize: 20
+                                                }
+                                            }); 
+                                            compressedFile.deleteFile();
+                                        }   
+                                    }                                      
+                                );
                             }
-                            return false;
-                        }).length; 
-                        if (validImages > 0) {
-                            anyValid = true;
-                        }
-                    }; 
-                    if (!anyValid && _e.videos && _e.videos.length > 0) {
-                        const validVideos = _e.videos.filter(obj => {
-                            if (obj.success) {
-                              return true;
-                            }
-                            return false;
-                        }).length; 
-                        if (validVideos > 0) {
-                            anyValid = true;
-                        }
-                    };  
-                    if (anyValid) {
-                        Ti.Media.hideCamera();
-                        appNavigation.openPostProcess({
-                            data: _e,
-                            onRetake: function() {
-                                openCamera(_mediaType);
-                            }
-                        });  
-                    } else {
-                        alertDialogHelper.createTemporalMessage({
-                            message: 'Error: no valid files found.',
-                            duration: 2000,
-                            opacity: 0.8,
-                            font: {
-                                fontSize: 20
-                            }
-                        });                     
+                        });
+                        return;
                     }
+
+                    Ti.Media.hideCamera();
+                    appNavigation.openPostProcess({
+                        data: _e,
+                        onRetake: function() {
+                            openCamera(_mediaType);
+                        }
+                    });  
+
                 } else {
                     alertDialogHelper.createTemporalMessage({
                         message: 'Error: no valid files found.',
@@ -386,6 +464,7 @@ const configure = () => {
         text: 'configure()',
         program: logProgram
     });
+    $.versionLabel.text = 'v: ' + Ti.App.version;
 
 };
 
@@ -399,8 +478,7 @@ $.win.addEventListener('open', ()=>{
         text: 'openControllers: ' +args.openControllers.length,
         program: logProgram
     });    
-
-    checkCameraPermissions();
+    checkGalleryPermissions(checkCameraPermissions);
 });
 
 $.win.addEventListener('close', ()=>{

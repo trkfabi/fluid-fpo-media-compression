@@ -1,4 +1,6 @@
-
+"Window":{
+	backgroundColor: "#000"
+}
 ".messages": {
 	textAlign: 'center',
     font:{ 

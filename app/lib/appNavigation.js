@@ -20,8 +20,8 @@ const appNavigation = (function () {
 			color: logColor
 		});
         _parms.openControllers = openControllers;
+
         let controller = Alloy.createController("home/cameraScreen", _parms);
-        
         controller.getView().open();
 	};
 	const openPostProcess = _parms => {

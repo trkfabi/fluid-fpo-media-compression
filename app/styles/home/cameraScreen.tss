@@ -9,14 +9,125 @@
 "#container": {
     height: Ti.UI.FILL,
     width: Ti.UI.FILL,
-    backgroundColor: '#FFFFFF'
+    backgroundColor: 'transparent',
+    touchEnabled: false,
+    zIndex: 10
 }
 "#cameraPermission": {
     text: 'No camera permission. Tap here.',
     textAlign: 'center',
-    color: '#000000',
+    color: '#FFFFFF',
     font: {
         fontSize: 18
     },
     visible: false
+}
+
+"#overlayContainer":{
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#000000'
+}
+"#overlayTop":{
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: '#000000'
+}
+"#title": {
+    top: 60,
+    image: '/images/mainTitle.png',
+    width: 180,
+    height: 20
+}
+"#overlayBottom":{
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 240,
+    backgroundColor: '#000000'
+}
+"#historyButton": {
+    bottom: 20,
+    right: 20,
+    backgroundImage: '/images/btnHistory.png',
+    height: 25,
+    width: 25
+}
+"#mediaTypeButton": {
+    title: 'Switch to Video',
+    width: 150,
+    height: 40,
+    top: 20,
+    visible: false
+}
+"#genericLabel": {
+    color: "#02B3E4",
+    font: {
+        fontSize: 18
+    },
+    left: 20,
+    top: 20,
+    textAlign: 'left',
+    text: 'Items: 0'
+}
+"#recordingLabel": {
+    color: 'red',
+    font: {
+        fontSize: 16
+    },
+    left: 20,
+    top: 40,
+    textAlign: 'left',
+    visible: false	
+}
+"#buttonsRow": {
+    bottom: 20,
+    left: 0,
+    right: 0,
+    height: 150,
+    backgroundColor: '#000000'
+}
+"#flashToggleButton": {
+    left: 30,
+    backgroundImage: '/images/btnFlashDisabled.png',
+    customImageEnabled: '/images/btnFlashEnabled.png',
+    customImageDisabled: '/images/btnFlashDisabled.png',
+    height: 50,
+    width: 50
+}
+"#snapButton": {
+    backgroundImage: '/images/btnCameraEnabled.png',
+    customImageEnabled: '/images/btnCameraEnabled.png',
+    customImageDisabled: '/images/btnCameraDisabled.png',
+    customImageRecording: '/images/btnCameraRecording.png',
+    height: 70,
+    width: 70    	
+}
+"#galleryButton": {
+    right: 30,
+    backgroundImage: '/images/btnGallery.png',
+    height: 50,
+    width: 50    
+}
+"#nextButton": {
+    title: 'Next',
+    width: 90,
+    height: 40,
+    top: 20,
+    right: 20,
+    visible: Alloy.Globals.allowMultipleFiles
+}
+"#versionLabel": {
+    color: "#02B3E4",
+    font: {
+        fontSize: 12
+    },
+    right: 40,
+    bottom: 20,
+    textAlign: 'right',
+    text: ''
 }

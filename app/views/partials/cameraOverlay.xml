@@ -5,6 +5,7 @@
             <Button id="historyButton" />
         </View>
         <View id="overlayBottom">
+            <ImageView id="thumb" />
             <Label id="genericLabel" />
             <Label id="recordingLabel" />
             <Button id="mediaTypeButton" class="blueButton"/>
