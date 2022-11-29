@@ -1,10 +1,10 @@
 "#win": {
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#000000'
 }
 "#container": {
     height: Ti.UI.FILL,
     width: Ti.UI.FILL,
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#000000'
 }
 "#title": {
     top: 60,
@@ -59,7 +59,7 @@
     left: 0,
     right: 0,
     height: 200,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
     layout: 'vertical',
     zIndex: 20
 }

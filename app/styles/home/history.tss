@@ -1,7 +1,7 @@
 "#container": {
     height: Ti.UI.FILL,
     width: Ti.UI.FILL,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
     layout: 'vertical'
 }
 "#headerView": {
@@ -14,7 +14,7 @@
 }
 "#closeLabel": {
     text: 'Close',
-    color: '#02B3E4',
+    color: '#FFFFFF',
     left: 20,
     top: 0,
     font: {
@@ -32,15 +32,17 @@
 }
 
 "#listView":{
-    headerTitle: 'Activity History',
+    //headerTitle: 'Activity History',
     top: 20,
     bottom: 30,
     width: Ti.UI.FILL,
     resultsSeparatorStyle: Titanium.UI.TABLE_VIEW_SEPARATOR_STYLE_SINGLE_LINE,
     defaultItemTemplate: 'template',
-	backgroundColor: "#FFFFFF"    
+	backgroundColor: "#000000"    
 }
-
+"#bindContainer": {
+    backgroundColor: "#000000"
+}
 "#imageRow": {
     left: 10,
     height: 60,
@@ -49,14 +51,14 @@
     touchEnabled: false
 }
 "#timestampRow": {
-    color: '#000000',
+    color: '#ffffff',
     left: 80,
     top: 5,
     textAlign: 'left',
     touchEnabled: false
 }
 "#sizeRow": {
-    color: '#000000',
+    color: '#ffffff',
     left: 80,
     textAlign: 'left',
     touchEnabled: false

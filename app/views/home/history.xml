@@ -8,11 +8,13 @@
             <ListView id="listView" defaultItemTemplate="template">
                 <Templates>
                     <ItemTemplate name="template">
-                        <ImageView bindId="bindItemPicture" id="imageRow" />
-                        <Label bindId="bindItemTimestamp" id="timestampRow" />
-						<Label bindId="bindItemSize" id="sizeRow" />
-                        <ImageView bindId="bindItemStatus" id="statusRow" />
-                        <Label bindId="bindItemUrl" id="urlRow" />
+                        <View id="bindContainer">
+                            <ImageView bindId="bindItemPicture" id="imageRow" />
+                            <Label bindId="bindItemTimestamp" id="timestampRow" />
+                            <Label bindId="bindItemSize" id="sizeRow" />
+                            <ImageView bindId="bindItemStatus" id="statusRow" />
+                            <Label bindId="bindItemUrl" id="urlRow" />
+                        </View>
                     </ItemTemplate>
                 </Templates>
             </ListView>

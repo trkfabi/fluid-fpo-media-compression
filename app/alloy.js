@@ -2,10 +2,10 @@
 Alloy.Globals.allowVideoFiles = true;
 
 // SUPPORT MULTIPLE PICS and VIDEOS
-Alloy.Globals.allowMulitpleFiles = false;
+Alloy.Globals.allowMulitpleFiles = true;
 
 // NEW OPTION TO ONLY SAVE COMPRESSED FILE TO GALLERY, NO UPLOAD :(
-Alloy.Globals.onlySaveToGallery = true;
+Alloy.Globals.onlySaveToGallery = false;
 
 Alloy.Globals.defaultUploadFolder = 'fopsupload';
 
