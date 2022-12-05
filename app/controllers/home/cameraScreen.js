@@ -189,7 +189,7 @@ const openCamera = (_mediaType) => {
         autohide: false,
         mediaTypes: _mediaType && _mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? [Ti.Media.MEDIA_TYPE_PHOTO]: [Ti.Media.MEDIA_TYPE_VIDEO], //Titanium.Media.MEDIA_TYPE_VIDEO, 
         allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
-        videoQuality: Ti.Media.QUALITY_MEDIUM,
+        videoQuality: Ti.Media.QUALITY_IFRAME_1280x720,
         transform: transformTranslate,
         animated: false,
         success: _e => {
@@ -210,9 +210,10 @@ const openCamera = (_mediaType) => {
                 if (_e.success) {
        
                     if (Alloy.Globals.onlySaveToGallery) {
-                        helper.processMedia(_e, function(_result) {                            
+                        helper.processMedia(_e, function(_result) {          
+                            
                             if (_result.success) {
-                                var compressedFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, _result.data.name);
+                                var compressedFile  = Ti.Filesystem.getFile(_result.data.url);
                                 if (_result.data.type === 'video') {
                                     let videoPlayer = Ti.Media.createVideoPlayer({
                                         autoplay: false,
@@ -251,6 +252,7 @@ const openCamera = (_mediaType) => {
                                                 }
                                             });                                                                                       
                                             compressedFile.deleteFile();
+                                            compressedFile = null;
                                         },
                                         error: _saveResult => {
                                             Alloy.Globals.doLog({
@@ -267,6 +269,7 @@ const openCamera = (_mediaType) => {
                                                 }
                                             }); 
                                             compressedFile.deleteFile();
+                                            compressedFile = null;
                                         }   
                                     }                                      
                                 );

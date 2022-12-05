@@ -162,8 +162,10 @@ var helper = (function () {
             }
             
             Ti.Media.exportVideo({
-                url: outputFile.nativePath,
-                quality: "medium"
+                url: outputFile.nativePath,                
+                bitRate: 500000,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                width: 0, // 0 to use original width
+                height: 0 // 0 to use original height
             });
             Ti.Media.addEventListener('exportvideo:completed', function videoCompleted(_compressedFile) {
                 Ti.Media.removeEventListener('exportvideo:completed', videoCompleted);
@@ -182,28 +184,65 @@ var helper = (function () {
 
             
         } else if(_e.mediaType === 'public.image') {
-       
+ 
             let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
             let newW = Alloy.Globals.photoDesiredSize;
             let newH = newW * ratio;
             let resizedImage = _e.media.imageAsResized(newW, newH);
+            resizedImage = resizedImage.imageAsCompressed(0.1);
+ 
+            let auxView = Ti.UI.createView({
+                height:newH,
+                width: newW
+            });
+            let auxImageView = Ti.UI.createImageView({
+                height: newH, 
+                width: newW, 
+                image: resizedImage
+            });
+            let auxTimestamp = Ti.UI.createLabel({
+                text: moment().format("MMM D, LTS"),
+                height: Ti.UI.SIZE,
+                width: Ti.UI.SIZE,
+                backgroundColor: '#FFFFFF',
+                textAlign: 'left',
+                color: '#444444',
+                font: {
+                    fontSize: 16
+                },
+                top: 10,
+                left: 10, 
+                zIndex: 10               
+            });
+            auxView.add(auxImageView);
+            auxView.add(auxTimestamp);
 
-            var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
-            var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
-            if (!outputFile.write(resizedImage)) {
-                // handle write error
-                console.error('Error: could not write photo data to a file');
-                                
-            }               
-            _callback && _callback({
-                success: true,
-                message: '',
-                data: {
-                    name: filename,
-                    url: outputFile.nativePath,
-                    type: 'photo'
-                }
-            }); 
+            auxView.toImage( _blob => {
+                //console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
+
+                var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
+                var outputFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
+                if (!outputFile.write(_blob)) {
+                    // handle write error
+                    console.error('Error: could not write photo data to a file');
+                                    
+                }      
+                _blob = null;         
+                _callback && _callback({
+                    success: true,
+                    message: '',
+                    data: {
+                        name: filename,
+                        url: outputFile.nativePath,
+                        type: 'photo'
+                    }
+                }); 
+            }, false);
+
+            // release memory
+            _e.media = null;
+
+
         }    
     };
 

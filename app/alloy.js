@@ -1,15 +1,27 @@
 // SUPPORT VIDEO OR NOT
 Alloy.Globals.allowVideoFiles = true;
 
-// SUPPORT MULTIPLE PICS and VIDEOS
-Alloy.Globals.allowMulitpleFiles = true;
+/*
+To use Leo's app (without uploading) set:
+ - allowMulitpleFiles = false;
+ - onlySaveToGallery = true;
 
-// NEW OPTION TO ONLY SAVE COMPRESSED FILE TO GALLERY, NO UPLOAD :(
-Alloy.Globals.onlySaveToGallery = false;
+To use the app with multiple select and uploading set:
+ - allowMulitpleFiles = true;
+ - onlySaveToGallery = false;
+*/
 
+// CONFIGURATION OPTIONS ///////////////////////////////
+Alloy.Globals.allowMulitpleFiles = false;
+Alloy.Globals.onlySaveToGallery = true;
+////////////////////////////////////////////////////////
+
+// CUSTOMIZATION
 Alloy.Globals.defaultUploadFolder = 'fopsupload';
-
 Alloy.Globals.photoDesiredSize = 640;
+////////////////////////////////////////////////////////
+
+// GENERIC STUFF
 
 Alloy.Globals.isInSandboxMode = true;
 
