@@ -164,6 +164,7 @@ var helper = (function () {
             Ti.Media.exportVideo({
                 url: outputFile.nativePath,                
                 bitRate: 500000,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                watermark: moment().format("YYYY-MM-DD HH:mm:ss"),
                 width: 0, // 0 to use original width
                 height: 0 // 0 to use original height
             });
@@ -201,17 +202,17 @@ var helper = (function () {
                 image: resizedImage
             });
             let auxTimestamp = Ti.UI.createLabel({
-                text: moment().format("MMM D, LTS"),
+                text: moment().format("YYYY-MM-DD HH:mm:ss"),
                 height: Ti.UI.SIZE,
                 width: Ti.UI.SIZE,
-                backgroundColor: '#FFFFFF',
+                backgroundColor: '#000000',
                 textAlign: 'left',
-                color: '#444444',
+                color: '#FFFFFF',
                 font: {
-                    fontSize: 16
+                    fontSize: 20
                 },
-                top: 10,
-                left: 10, 
+                top: 0,
+                left: 0, 
                 zIndex: 10               
             });
             auxView.add(auxImageView);
