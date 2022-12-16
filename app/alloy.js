@@ -16,9 +16,22 @@ Alloy.Globals.allowMulitpleFiles = false;
 Alloy.Globals.onlySaveToGallery = true;
 ////////////////////////////////////////////////////////
 
+Alloy.Globals.videoQualityPropertyName = 'fops:videoquality';
+Alloy.Globals.videoBitRatePropertyName = 'fops:videobitrate';
+
 // CUSTOMIZATION
 Alloy.Globals.defaultUploadFolder = 'fopsupload';
 Alloy.Globals.photoDesiredSize = 640;
+
+// console.warn('qualities:');
+// console.warn('Ti.Media.QUALITY_HIGH: '+ Ti.Media.QUALITY_HIGH);
+// console.warn('Ti.Media.QUALITY_640x480: '+ Ti.Media.QUALITY_640x480);
+// console.warn('Ti.Media.QUALITY_IFRAME_960x540: '+ Ti.Media.QUALITY_IFRAME_960x540);
+// console.warn('Ti.Media.QUALITY_IFRAME_1280x720: '+ Ti.Media.QUALITY_IFRAME_1280x720);
+// console.warn(JSON.stringify(Ti.Media.getSupportedFormats()));
+
+Alloy.Globals.videoQuality = Ti.App.Properties.getInt(Alloy.Globals.videoQualityPropertyName, Ti.Media.QUALITY_IFRAME_1280x720);
+Alloy.Globals.videoBitRate = Ti.App.Properties.getInt(Alloy.Globals.videoBitRatePropertyName, 500000);  // in bits per second.  20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
 ////////////////////////////////////////////////////////
 
 // GENERIC STUFF
@@ -126,3 +139,29 @@ Alloy.Globals.doLog({
 	text: 'pH: ' + Ti.Platform.displayCaps.platformHeight + ' pW: '+Ti.Platform.displayCaps.platformWidth+ ' df: '+Ti.Platform.displayCaps.logicalDensityFactor+' hasNotch: '+Alloy.Globals.hasNotch,
 	program: 'alloy'
 });
+
+const onUncaughtException = (e) => {
+    let lineSource;
+    if (OS_IOS) {
+        lineSource = e.stack ? e.stack : e.nativeStack ? e.nativeStack : "";
+    } else {
+        lineSource = e.lineSource;
+    }
+    if (lineSource === null) lineSource = "";
+    lineSource = lineSource.length > 150 ? lineSource.substring(0, 150) : lineSource;
+    const errorData = {
+        line: e.line,
+        lineOffset: OS_IOS ? e.column : e.lineOffset,
+        message: e.message,
+        sourceName: OS_IOS ? e.sourceURL : e.sourceName,
+        lineSource: lineSource,
+    };
+    Alloy.Globals.doLog({
+        type: 'error',
+        text: `onUncaughtException() data: ${JSON.stringify(errorData)}`,
+        program: logProgram,
+        color: logColor
+    });
+};
+
+Ti.App.addEventListener("uncaughtException", onUncaughtException);

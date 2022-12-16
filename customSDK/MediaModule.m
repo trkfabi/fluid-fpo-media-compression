@@ -1728,6 +1728,34 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
 #endif
 
 
+-(NSArray*)getSupportedFormats:(id)args
+{
+    NSLog(@"[INFO] getSupportedFormats");
+    NSMutableArray *formatMutableArray = [[NSMutableArray alloc] init];
+    for (AVCaptureDevice *d in [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]) {
+
+        for ( AVCaptureDeviceFormat *format in [d formats] ) {
+
+            CMFormatDescriptionRef desc = format.formatDescription;
+            CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(desc);
+            int format_width = dimensions.width;
+
+            for ( AVFrameRateRange *range in format.videoSupportedFrameRateRanges ) {
+                NSDictionary *dictionary = @{
+                       @"width" : [NSNumber numberWithInt:format_width],
+                    @"maxfps" : [NSNumber numberWithInt:range.maxFrameRate],
+                       @"minfps" : [NSNumber numberWithInt:range.minFrameRate],
+                    @"name" : [d localizedName],
+                     @"position" : [NSNumber numberWithInt:[d position]]
+                };
+                [formatMutableArray addObject:dictionary];
+            }
+        
+        }
+    }
+    return formatMutableArray;
+}
+
 - (void) exportVideo:(id)args {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSDictionary);
     NSLog(@"[INFO] exportVideo() - url: %@ - bitRate: %@ - watermark: %@", [args objectForKey:@"url"], [args objectForKey:@"bitRate"], [args objectForKey:@"watermark"]);
@@ -1967,26 +1995,22 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
 -(UIImage *)imageFromText:(NSString *)text
 {
     // set the font type and size
-    UIFont *font = [UIFont fontWithName:@"Helvetica" size:14];
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:20];
     NSDictionary *attributes = @{NSFontAttributeName: font};
-    CGSize size  = [text sizeWithAttributes:attributes];
-    UIGraphicsBeginImageContextWithOptions(size,NO,0.0);
-    
-    /*
-    CGFloat degrees = -90.0;
-    CGFloat roundedDegrees = (CGFloat)(round(degrees / 90.0) * 90.0);
-    BOOL sameOrientationType = ((NSInteger)roundedDegrees) % 180 == 0;
-    CGFloat radians = M_PI * roundedDegrees / 180.0;
-    CGSize newSize = sameOrientationType ? size : CGSizeMake(size.height, size.width);
+    CGSize size = [text sizeWithAttributes:attributes];
+    CGSize newSize = CGSizeMake(size.height, size.width);
 
     UIGraphicsBeginImageContext(newSize);
+    
+    CGFloat degrees = -90.0;
+    CGFloat radians = M_PI * degrees / 180.0;
+    
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     
-    CGContextTranslateCTM(ctx, newSize.width / 2.0, newSize.height / 2.0);
+    CGContextTranslateCTM(ctx, 0, newSize.height);
     CGContextRotateCTM(ctx, radians);
-    CGContextScaleCTM(ctx, 1, -1);
-    */
-    [text drawAtPoint:CGPointMake(0.0,0.0)
+    
+    [text drawAtPoint:CGPointMake(0 , 0)
                       withAttributes:@{
                         NSFontAttributeName:font,
                         NSForegroundColorAttributeName:[UIColor whiteColor]
@@ -1996,22 +2020,6 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
-    /*
-    UIGraphicsBeginImageContextWithOptions(size,NO,0.0);
-
-    [text drawAtPoint:CGPointMake(0.0, 0.0)
-                      withAttributes:@{
-                        NSFontAttributeName:font,
-                        NSForegroundColorAttributeName:[UIColor whiteColor]
-                    
-    }];
- 
-    // transfer image
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-
-    return image;
-     */
 }
 
 #if defined(USE_TI_MEDIASHOWCAMERA) || defined(USE_TI_MEDIAOPENPHOTOGALLERY) || defined(USE_TI_MEDIASTARTVIDEOEDITING)

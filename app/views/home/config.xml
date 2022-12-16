@@ -1,0 +1,28 @@
+<Alloy>
+    <Window id="win" navBarHidden="true">
+        <View id="container">
+			<View id="headerView">
+            	<Label id="closeLabel" class="messages"/>
+			</View>
+			<View id="contentView">
+				<View id="qualityRow" class="row">
+					<Label id="qualityRowTitle" class="rowTitle" />
+					<Picker id="qualityRowPicker" selectionIndicator="true" useSpinner="true">
+						<PickerColumn id="column1">
+							<PickerRow title="640x480" customValue=Ti.Media.QUALITY_640x480/>
+							<PickerRow title="960x540" customValue=Ti.Media.QUALITY_IFRAME_960x540 />
+							<PickerRow title="1280x720" customValue=Ti.Media.QUALITY_IFRAME_1280x720 />
+							<PickerRow title="HIGHEST" customValue=Ti.Media.QUALITY_HIGH/>
+						</PickerColumn>
+					</Picker>
+				</View>
+				<View id="bitrateRow" class="row">
+					<Label id="bitrateRowTitle" class="rowTitle" />
+					<TextField id="bitrateRowInput" />
+				</View>
+
+				<Button id="applyButton" class="blueButton"/>
+			</View>
+        </View>
+    </Window>
+</Alloy>

@@ -51,11 +51,26 @@ const appNavigation = (function () {
         
         controller.getView().open();		
 	}
+
+	const openConfig = _parms => {
+        _parms = _parms || {};
+		Alloy.Globals.doLog({
+			type: logType,
+			text: 'openConfig()',
+			program: logProgram,
+			color: logColor
+		});
+        _parms.openControllers = openControllers;
+        let controller = Alloy.createController("home/config", _parms);
+        
+        controller.getView().open();		
+	}	
 	// Public API.
 	return {
 		openHome,
 		openPostProcess,
-		openActivity
+		openActivity,
+		openConfig
 	};
 })();
 

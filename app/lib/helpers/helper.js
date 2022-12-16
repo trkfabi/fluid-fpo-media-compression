@@ -154,7 +154,7 @@ var helper = (function () {
             });          
 
             var filename = 'movie_' + moment().format('YYYYMMDDhhmmssSSS') + '.mov';
-            var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
+            var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename);
             if (!outputFile.write(_e.media)) {
                 // handle write error
                 console.error('Error: could not write video data to a file '+filename);
@@ -163,13 +163,17 @@ var helper = (function () {
             
             Ti.Media.exportVideo({
                 url: outputFile.nativePath,                
-                bitRate: 500000,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                bitRate: Alloy.Globals.videoBitRate,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
                 watermark: moment().format("YYYY-MM-DD HH:mm:ss"),
                 width: 0, // 0 to use original width
                 height: 0 // 0 to use original height
             });
             Ti.Media.addEventListener('exportvideo:completed', function videoCompleted(_compressedFile) {
                 Ti.Media.removeEventListener('exportvideo:completed', videoCompleted);
+
+                outputFile.deleteFile();
+                outputFile = null;
+
                 _callback && _callback({
                     success: true,
                     message: '',
@@ -180,10 +184,7 @@ var helper = (function () {
                     }
                 });                
             });
-            
-            outputFile = null;
 
-            
         } else if(_e.mediaType === 'public.image') {
  
             let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
@@ -222,13 +223,14 @@ var helper = (function () {
                 //console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
 
                 var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
-                var outputFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
+                var outputFile = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename);
                 if (!outputFile.write(_blob)) {
                     // handle write error
                     console.error('Error: could not write photo data to a file');
                                     
                 }      
-                _blob = null;         
+                _blob = null;   
+                     
                 _callback && _callback({
                     success: true,
                     message: '',
@@ -238,12 +240,8 @@ var helper = (function () {
                         type: 'photo'
                     }
                 }); 
+                                
             }, false);
-
-            // release memory
-            _e.media = null;
-
-
         }    
     };
 

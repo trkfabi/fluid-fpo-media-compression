@@ -6,6 +6,7 @@ const logProgram = 'partials/cameraOverlay';
 let snapButtonStatus = 'READY';    // DISABLED , RECORDING
 let isVideo = args.mediaType === Ti.Media.MEDIA_TYPE_PHOTO? false: true;
 let startRecordingTime;
+let titleClicks = 0;
 
 const configure = () => {
     Alloy.Globals.doLog({
@@ -22,6 +23,24 @@ const configure = () => {
     });       
 }
 configure();
+
+const onTitleClick = () => {
+    $.versionLabel.backgroundColor = '#ccc';
+    setTimeout(()=>{
+        $.versionLabel.backgroundColor = 'transparent';
+    }, 200);
+    titleClicks++;
+    Alloy.Globals.doLog({
+        text: 'onTitleClick() - ' + titleClicks,
+        program: logProgram
+    });     
+    if (titleClicks === 4) {
+        titleClicks = 0;
+        args.onConfigScreen();
+    }
+}
+$.versionLabel.addEventListener('click', onTitleClick);
+
 
 const onHistoryClick = () => {
     Alloy.Globals.doLog({

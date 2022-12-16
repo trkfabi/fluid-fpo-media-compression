@@ -1,0 +1,84 @@
+"#container": {
+    top: 0,
+    height: Ti.UI.FILL,
+    width: Ti.UI.FILL,
+    backgroundColor: '#000000',
+    layout: 'vertical'
+}
+"#headerView": {
+    top: 20,
+    height: Ti.UI.SIZE,
+    width: Ti.UI.FILL
+}
+"#headerView[if=Alloy.Globals.hasNotch]": {
+    top: 50
+}
+"#closeLabel": {
+    text: 'Close',
+    color: '#FFFFFF',
+    left: 20,
+    top: 0,
+    font: {
+        fontSize: 20
+    }
+}
+"#contentView": {
+    top: 20,
+    left: 0,
+    right: 0,
+    height: Ti.UI.SIZE,
+    layout: 'vertical'
+}
+".row": {
+    top: 20,
+    left: 0,
+    right: 0,
+    height: Ti.UI.SIZE
+}
+".rowTitle": {
+    left: 20,
+    width: Ti.UI.SIZE,
+    font: {
+        fontSize: 16
+    },
+    color: '#FFFFFF',
+    textAlign: 'left',
+    height: Ti.UI.SIZE
+}
+"#qualityRow": {
+    top: 20
+}
+"#qualityRowTitle": {
+    top: 0,
+    text: 'Quality: '
+}
+"#qualityRowPicker": {
+    top: 0,
+    left: 140,
+    right: 20,
+    height: 100,
+    borderRadius: 5
+}
+"#bitrateRow": {
+    top: 20
+}
+"#bitrateRowTitle": {
+    text: 'Bit rate (kbps): '
+}
+"#bitrateRowInput": {
+    left: 140,
+    right: 20,
+    height: 40,
+    hintText: 'Enter bitrate (kbps)',
+    hintTextColor: '#ccc',
+    keyboardType: Ti.UI.KEYBOARD_TYPE_NUMBER_PAD,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5
+}
+"#applyButton": {
+    title: 'Apply',
+    left: 20,
+    right: 20,
+    height: 50,
+    top: 50
+}

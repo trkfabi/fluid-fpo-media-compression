@@ -8,10 +8,47 @@ const args = $.args;
 
 let isRecording = false;
 let isLandscape = Ti.Gesture.landscape;
+let lastMediaType = Titanium.Media.MEDIA_TYPE_PHOTO;
+
 Alloy.Globals.objectToProcess = {
     success: true,
     videos: [],
     images: []
+};
+
+const listDirectories = () => {
+    Alloy.Globals.doLog({
+        text: 'listDirectories()',
+        program: logProgram
+    }); 
+    let tempDirectory = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory);
+    if (tempDirectory.isDirectory()) {
+        let filesInDirectory = tempDirectory.getDirectoryListing();
+        Alloy.Globals.doLog({
+            text: 'tempDirectory: '+JSON.stringify(filesInDirectory),
+            program: logProgram
+        }); 
+    }
+};
+const emptyDirectories = () => {
+    Alloy.Globals.doLog({
+        text: 'emptyDirectories()',
+        program: logProgram
+    }); 
+    let tempDirectory = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory);
+    if (tempDirectory.isDirectory()) {
+        let filesInDirectory = tempDirectory.getDirectoryListing();
+        filesInDirectory.forEach(tmpFileName => {
+            let tmpFile = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, tmpFileName);
+            if (tmpFile.exists() && tmpFile.isFile()){
+                Alloy.Globals.doLog({
+                    text: 'tempDirectory: '+tmpFileName+ ' removed.',
+                    program: logProgram
+                }); 
+                tmpFile.deleteFile();
+            }
+        });
+    }
 };
 
 const checkStoragePermissions = () => {
@@ -52,6 +89,7 @@ const checkGalleryPermissions = _callback => {
 
 const openCamera = (_mediaType) => {
     _mediaType = _mediaType || Ti.Media.MEDIA_TYPE_PHOTO;
+    lastMediaType = _mediaType;
     Alloy.Globals.doLog({
         text: 'openCamera() type: '+_mediaType,
         program: logProgram
@@ -97,6 +135,12 @@ const openCamera = (_mediaType) => {
         },
         onGallery: () => {
             checkGalleryPermissions(openGallery);
+        },
+        onConfigScreen: () => {
+            Ti.Media.hideCamera();
+            appNavigation.openConfig({
+                onClose: () => {openCamera(_mediaType);}
+            }); 
         },
         onChangeMediaType: () => {
             if (_mediaType === Titanium.Media.MEDIA_TYPE_PHOTO) {
@@ -188,8 +232,8 @@ const openCamera = (_mediaType) => {
         allowEditing: false,
         autohide: false,
         mediaTypes: _mediaType && _mediaType === Ti.Media.MEDIA_TYPE_PHOTO ? [Ti.Media.MEDIA_TYPE_PHOTO]: [Ti.Media.MEDIA_TYPE_VIDEO], //Titanium.Media.MEDIA_TYPE_VIDEO, 
-        allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
-        videoQuality: Ti.Media.QUALITY_IFRAME_1280x720,
+        allowTranscoding: false,	
+        videoQuality: Alloy.Globals.videoQuality,
         transform: transformTranslate,
         animated: false,
         success: _e => {
@@ -210,10 +254,15 @@ const openCamera = (_mediaType) => {
                 if (_e.success) {
        
                     if (Alloy.Globals.onlySaveToGallery) {
-                        helper.processMedia(_e, function(_result) {          
-                            
+                        helper.processMedia(_e, function(_result) {    
+                            // release original object      
+                            _e = null;
+
+                            listDirectories();
+
+
                             if (_result.success) {
-                                var compressedFile  = Ti.Filesystem.getFile(_result.data.url);
+                                let compressedFile  = Ti.Filesystem.getFile(_result.data.url);
                                 if (_result.data.type === 'video') {
                                     let videoPlayer = Ti.Media.createVideoPlayer({
                                         autoplay: false,
@@ -251,8 +300,10 @@ const openCamera = (_mediaType) => {
                                                     fontSize: 20
                                                 }
                                             });                                                                                       
-                                            compressedFile.deleteFile();
+                                            //compressedFile.deleteFile();
                                             compressedFile = null;
+
+                                            emptyDirectories();
                                         },
                                         error: _saveResult => {
                                             Alloy.Globals.doLog({
@@ -268,8 +319,9 @@ const openCamera = (_mediaType) => {
                                                     fontSize: 20
                                                 }
                                             }); 
-                                            compressedFile.deleteFile();
+                                            //compressedFile.deleteFile();
                                             compressedFile = null;
+                                            emptyDirectories();
                                         }   
                                     }                                      
                                 );
