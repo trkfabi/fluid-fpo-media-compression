@@ -19,6 +19,7 @@
 				<View id="bitrateRow" class="row">
 					<Label id="bitrateRowTitle" class="rowTitle" />
 					<TextField id="bitrateRowInput" />
+					<TextField id="fpsRowInput" />
 				</View>
 
 				<Button id="applyButton" class="blueButton"/>

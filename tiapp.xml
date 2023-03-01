@@ -65,13 +65,30 @@
 		</plist>
 	</ios>
 	<android xmlns:android="http://schemas.android.com/apk/res/android">
-		<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1">
+		<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0.3">
+			<uses-sdk android:minSdkVersion="23" android:targetSdkVersion="33" android:requestLegacyExternalStorage="true"/>
+			<!-- Camera Permissions -->
+			<uses-permission android:name="android.permission.CAMERA"/>
+			<uses-feature android:name="android.hardware.camera.autofocus"/>
+			<uses-feature android:name="android.hardware.camera" android:required="false"/>
+			<uses-feature android:name="android.hardware.camera.flash" android:required="false"/>
+			<uses-permission android:name="android.permission.INTERNET"/>
+			<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+			<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+			<uses-permission android:name="android.permission.WAKE_LOCK"/>
+			<uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+			<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+			<uses-permission android:name="android.permission.VIBRATE"/>
+			<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+			<uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+		
 		</manifest>
 	</android>
 	<modules>
 		<module platform="iphone">firebase.core</module>
 		<module platform="iphone">firebase.storage</module>
-		<!-- <module platform="iphone">ti.imagefactory</module> -->
+		<module platform="android">com.inzori.androidvideocompression</module>
 	</modules>
 	<deployment-targets>
 		<target device="android">true</target>

@@ -75,6 +75,16 @@
     backgroundColor: '#FFFFFF',
     borderRadius: 5
 }
+"#fpsRowInput": {
+    left: 140,
+    right: 20,
+    height: 40,
+    hintText: 'Enter fps',
+    hintTextColor: '#ccc',
+    keyboardType: Ti.UI.KEYBOARD_TYPE_NUMBER_PAD,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5
+}
 "#applyButton": {
     title: 'Apply',
     left: 20,

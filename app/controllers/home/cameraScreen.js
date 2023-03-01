@@ -21,7 +21,7 @@ const listDirectories = () => {
         text: 'listDirectories()',
         program: logProgram
     }); 
-    let tempDirectory = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory);
+    let tempDirectory = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
     if (tempDirectory.isDirectory()) {
         let filesInDirectory = tempDirectory.getDirectoryListing();
         Alloy.Globals.doLog({
@@ -35,11 +35,11 @@ const emptyDirectories = () => {
         text: 'emptyDirectories()',
         program: logProgram
     }); 
-    let tempDirectory = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory);
+    let tempDirectory = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
     if (tempDirectory.isDirectory()) {
         let filesInDirectory = tempDirectory.getDirectoryListing();
         filesInDirectory.forEach(tmpFileName => {
-            let tmpFile = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, tmpFileName);
+            let tmpFile = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, tmpFileName): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, tmpFileName);
             if (tmpFile.exists() && tmpFile.isFile()){
                 Alloy.Globals.doLog({
                     text: 'tempDirectory: '+tmpFileName+ ' removed.',
@@ -112,10 +112,12 @@ const openCamera = (_mediaType) => {
                 Alloy.Globals.onlySaveToGallery && cameraOverlayController.displayMessage({
                     message: 'Please wait...',
                     opacity: 0.8,
+                    duration: 0,
                     font: {
                         fontSize: 20
                     }
-                });                 
+                });     
+                console.warn('take');            
                 Ti.Media.takePicture();
             } else {
                 if (isRecording) {
@@ -123,6 +125,7 @@ const openCamera = (_mediaType) => {
                     Alloy.Globals.onlySaveToGallery && cameraOverlayController.displayMessage({
                         message: 'Please wait...',
                         opacity: 0.8,
+                        duration: 0,
                         font: {
                             fontSize: 20
                         }
@@ -238,7 +241,7 @@ const openCamera = (_mediaType) => {
         animated: false,
         success: _e => {
             Alloy.Globals.doLog({
-                text: 'Camera success: ' + JSON.stringify(_e),
+                text: 'Camera success: ',// + JSON.stringify(_e),
                 program: logProgram
             }); 
 
@@ -254,7 +257,17 @@ const openCamera = (_mediaType) => {
                 if (_e.success) {
        
                     if (Alloy.Globals.onlySaveToGallery) {
-                        helper.processMedia(_e, function(_result) {    
+                        cameraOverlayController.hideMessage();
+                        cameraOverlayController.displayMessage({
+                            message: 'Compressing... please wait',
+                            opacity: 0.8,
+                            duration: 0,
+                            font: {
+                                fontSize: 20
+                            }
+                        });          
+                        helper.processMedia(_e, function(_result) {  
+                            console.warn('Helper.processMedia() callback: ' + JSON.stringify(_result)); 
                             // release original object      
                             _e = null;
 
@@ -304,6 +317,8 @@ const openCamera = (_mediaType) => {
                                             compressedFile = null;
 
                                             emptyDirectories();
+
+                                            cameraOverlayController.hideMessage();
                                         },
                                         error: _saveResult => {
                                             Alloy.Globals.doLog({
@@ -322,9 +337,13 @@ const openCamera = (_mediaType) => {
                                             //compressedFile.deleteFile();
                                             compressedFile = null;
                                             emptyDirectories();
+
+                                            cameraOverlayController.hideMessage();
                                         }   
                                     }                                      
                                 );
+                            } else {
+                                cameraOverlayController.hideMessage();
                             }
                         });
                         return;

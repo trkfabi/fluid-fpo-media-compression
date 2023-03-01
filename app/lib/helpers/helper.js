@@ -154,45 +154,86 @@ var helper = (function () {
             });          
 
             var filename = 'movie_' + moment().format('YYYYMMDDhhmmssSSS') + '.mov';
-            var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename);
+            var outputFile  = OS_IOS ? 
+                Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename):
+                Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
             if (!outputFile.write(_e.media)) {
                 // handle write error
                 console.error('Error: could not write video data to a file '+filename);
 
             }
             
-            Ti.Media.exportVideo({
-                url: outputFile.nativePath,                
-                bitRate: Alloy.Globals.videoBitRate,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
-                watermark: moment().format("YYYY-MM-DD HH:mm:ss"),
-                width: 0, // 0 to use original width
-                height: 0 // 0 to use original height
-            });
-            Ti.Media.addEventListener('exportvideo:completed', function videoCompleted(_compressedFile) {
-                Ti.Media.removeEventListener('exportvideo:completed', videoCompleted);
+            if(OS_IOS) {
+                Ti.Media.exportVideo({
+                    url: outputFile.nativePath,     
+                    bitRate: Alloy.Globals.videoBitRate,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                    watermark: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    fps: Alloy.Globals.videoFPS,
+                    width: 0, // 0 to use original width
+                    height: 0 // 0 to use original height
+                });
+                Ti.Media.addEventListener('exportvideo:completed', function videoCompleted(_compressedFile) {
+                    Ti.Media.removeEventListener('exportvideo:completed', videoCompleted);
 
-                outputFile.deleteFile();
-                outputFile = null;
+                    outputFile.deleteFile();
+                    outputFile = null;
+                    _callback && _callback({
+                        success: true,
+                        message: '',
+                        data: {
+                            name: filename,
+                            url: _compressedFile.url,
+                            type: 'video'
+                        }
+                    });                
+                });
+            } else {
+                var targetName = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, "compressed_video.mp4").nativePath.slice(7);  //remove "file://"
 
-                _callback && _callback({
-                    success: true,
-                    message: '',
-                    data: {
-                        name: filename,
-                        url: _compressedFile.url,
-                        type: 'video'
-                    }
-                });                
-            });
+                const AndroidVideoCompression = require('com.inzori.androidvideocompression');
+                AndroidVideoCompression.compressVideo({
+                    url: outputFile.nativePath, 
+                    targetPath: targetName,
+                    quality: 'VERY_HIGH',
+                    //bitRate: Alloy.Globals.videoBitRate,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                    watermark: moment().format("YYYY-MM-DD HH:mm:ss")       
+                });
+                AndroidVideoCompression.addEventListener('android_compression_result', function videoCompleted(_result) {
+                    AndroidVideoCompression.removeEventListener('android_compression_result', videoCompleted);
+
+                    outputFile.deleteFile();
+                    outputFile = null;
+                    // sent: file:///data/user/0/com.fluidmarket.mediacompression/app_appdata/movie_20230118015719168.mov
+                    // received: /data/user/0/com.fluidmarket.mediacompression/files/compressed_video.mp4
+                    _callback && _callback({
+                        success: _result.success,
+                        message: _result.error || '',
+                        data: {
+                            name: filename,
+                            url: 'file://' + _result.path,
+                            type: 'video'
+                        }
+                    });                     
+                });
+            }
 
         } else if(_e.mediaType === 'public.image') {
- 
+            Alloy.Globals.doLog({
+                text: 'Item is a photo',
+                program: logProgram
+            });    
+
             let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
             let newW = Alloy.Globals.photoDesiredSize;
             let newH = newW * ratio;
             let resizedImage = _e.media.imageAsResized(newW, newH);
             resizedImage = resizedImage.imageAsCompressed(0.1);
- 
+
+            Alloy.Globals.doLog({
+                text: 'Create watermark',
+                program: logProgram
+            });    
+            
             let auxView = Ti.UI.createView({
                 height:newH,
                 width: newW
@@ -217,31 +258,31 @@ var helper = (function () {
                 zIndex: 10               
             });
             auxView.add(auxImageView);
-            auxView.add(auxTimestamp);
+            auxView.add(auxTimestamp);   
+            var _blob = auxView.toImage(null, false) ;            
+            console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
 
-            auxView.toImage( _blob => {
-                //console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
-
-                var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
-                var outputFile = Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename);
-                if (!outputFile.write(_blob)) {
-                    // handle write error
-                    console.error('Error: could not write photo data to a file');
-                                    
-                }      
-                _blob = null;   
-                     
-                _callback && _callback({
-                    success: true,
-                    message: '',
-                    data: {
-                        name: filename,
-                        url: outputFile.nativePath,
-                        type: 'photo'
-                    }
-                }); 
+            var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
+            var outputFile  = OS_IOS ? 
+            Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename):
+            Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);                
+            
+            if (!outputFile.write(_blob)) {
+                // handle write error
+                console.error('Error: could not write photo data to a file');
                                 
-            }, false);
+            }      
+            _blob = null;   
+                
+            _callback && _callback({
+                success: true,
+                message: '',
+                data: {
+                    name: filename,
+                    url: outputFile.nativePath,
+                    type: 'photo'
+                }
+            }); 
         }    
     };
 
