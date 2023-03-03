@@ -36,6 +36,16 @@ const application = (function () {
 			program: logProgram,
 			color: logColor
 		});
+		if (Ti.App.Properties.getBool('app:isFirstLaunch', true)) {
+			Alloy.Globals.doLog({
+				type: logType,
+				text: 'First launch clear directories()',
+				program: logProgram,
+				color: logColor
+			});			
+			require('/helpers/helper').emptyDirectories();
+			Ti.App.Properties.setBool('app:isFirstLaunch', false)
+		}
         appNavigation.openHome();
 
 		// OS_ANDROID && Ti.App.addEventListener("paused", onPaused);

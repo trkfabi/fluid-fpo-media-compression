@@ -7,12 +7,11 @@ const args = $.args;
 let activity = Alloy.Globals.activityHistory;
 
 const configure = () => {
+    // list files in appDir
+    helper.listDirectories();
+
     var dataSet = [];
     activity.forEach( (item, index) => {
-        //var itemImage = item.url;
-        //if (item.status !== 'success') {
-        var itemImage = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, item.name);
-        //}
         
         dataSet.push({
             template: "template",
@@ -25,7 +24,7 @@ const configure = () => {
                 selectionStyle: 0
             },
             bindItemPicture: {
-                image: item.type === 'photo' ? itemImage: (item.videothumbnail || null)
+                image: item.thumbnail
             },
             bindItemTimestamp: {
                 text: item.date
@@ -64,6 +63,9 @@ const onClearHistoryClick = () => {
             activity = [];
             Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
             Alloy.Globals.activityHistory = activity;   
+
+            helper.emptyDirectories();
+            
             configure();           
         }
     }).show();
@@ -92,65 +94,65 @@ const onListClick = (_e) => {
             }
         });
     } else {
-        alertDialogHelper.createConfirmDialog({
-            title: 'Retry upload?',
-            message: `This will try to upload the file.`,
-            cancelActionCallback: () => {},
-            confirmActionCallback: () => {
-                var messageDialog = alertDialogHelper.createTemporalMessage({
-                    message: 'Uploading...',
-                    duration: 0,
-                    opacity: 0.8,
-                    font: {
-                        fontSize: 20
-                    }
-                });          
-                helper.uploadFile({
-                    file: {
-                        name,
-                        url,
-                        type
-                    },
-                    onSuccess: _response => {
-                        messageDialog.close();
-                        let newActivityItem = _response.item;
-                        activity.push(newActivityItem);
-                        Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-                        Alloy.Globals.activityHistory = activity;
+        // alertDialogHelper.createConfirmDialog({
+        //     title: 'Retry upload?',
+        //     message: `This will try to upload the file.`,
+        //     cancelActionCallback: () => {},
+        //     confirmActionCallback: () => {
+        //         var messageDialog = alertDialogHelper.createTemporalMessage({
+        //             message: 'Uploading...',
+        //             duration: 0,
+        //             opacity: 0.8,
+        //             font: {
+        //                 fontSize: 20
+        //             }
+        //         });          
+        //         helper.uploadFile({
+        //             file: {
+        //                 name,
+        //                 url,
+        //                 type
+        //             },
+        //             onSuccess: _response => {
+        //                 messageDialog.close();
+        //                 let newActivityItem = _response.item;
+        //                 activity.push(newActivityItem);
+        //                 Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+        //                 Alloy.Globals.activityHistory = activity;
             
-                        Ti.UI.Clipboard.clearText();
-                        Ti.UI.Clipboard.setText(newActivityItem.url);   
-                        configure();
-                        alertDialogHelper.createTemporalMessage({
-                            message: 'URL(s) copied to clipboard',
-                            duration: 2000,
-                            opacity: 0.8,
-                            font: {
-                                fontSize: 20
-                            }
-                        });                             
-                    },
-                    onError: _response => {
-                        messageDialog.close();
-                        let newActivityItem = _response.item;
-                        Ti.UI.Clipboard.clearText();
-                        activity.push(newActivityItem);
-                        Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-                        Alloy.Globals.activityHistory = activity;
-                        configure();
-                        alertDialogHelper.createTemporalMessage({
-                            message: 'File could not be uploaded.',// Error: ' + _response.error.messages[0],
-                            duration: 2000,
-                            opacity: 0.8,
-                            color: 'red',
-                            font: {
-                                fontSize: 20
-                            }
-                        });                 
-                    }
-                });      
-            }
-        }).show();        
+        //                 Ti.UI.Clipboard.clearText();
+        //                 Ti.UI.Clipboard.setText(newActivityItem.url);   
+        //                 configure();
+        //                 alertDialogHelper.createTemporalMessage({
+        //                     message: 'URL(s) copied to clipboard',
+        //                     duration: 2000,
+        //                     opacity: 0.8,
+        //                     font: {
+        //                         fontSize: 20
+        //                     }
+        //                 });                             
+        //             },
+        //             onError: _response => {
+        //                 messageDialog.close();
+        //                 let newActivityItem = _response.item;
+        //                 Ti.UI.Clipboard.clearText();
+        //                 activity.push(newActivityItem);
+        //                 Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+        //                 Alloy.Globals.activityHistory = activity;
+        //                 configure();
+        //                 alertDialogHelper.createTemporalMessage({
+        //                     message: 'File could not be uploaded.',// Error: ' + _response.error.messages[0],
+        //                     duration: 2000,
+        //                     opacity: 0.8,
+        //                     color: 'red',
+        //                     font: {
+        //                         fontSize: 20
+        //                     }
+        //                 });                 
+        //             }
+        //         });      
+        //     }
+        // }).show();        
     }
 }
 

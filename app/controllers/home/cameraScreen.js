@@ -16,40 +16,6 @@ Alloy.Globals.objectToProcess = {
     images: []
 };
 
-const listDirectories = () => {
-    Alloy.Globals.doLog({
-        text: 'listDirectories()',
-        program: logProgram
-    }); 
-    let tempDirectory = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
-    if (tempDirectory.isDirectory()) {
-        let filesInDirectory = tempDirectory.getDirectoryListing();
-        Alloy.Globals.doLog({
-            text: 'tempDirectory: '+JSON.stringify(filesInDirectory),
-            program: logProgram
-        }); 
-    }
-};
-const emptyDirectories = () => {
-    Alloy.Globals.doLog({
-        text: 'emptyDirectories()',
-        program: logProgram
-    }); 
-    let tempDirectory = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
-    if (tempDirectory.isDirectory()) {
-        let filesInDirectory = tempDirectory.getDirectoryListing();
-        filesInDirectory.forEach(tmpFileName => {
-            let tmpFile = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, tmpFileName): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, tmpFileName);
-            if (tmpFile.exists() && tmpFile.isFile()){
-                Alloy.Globals.doLog({
-                    text: 'tempDirectory: '+tmpFileName+ ' removed.',
-                    program: logProgram
-                }); 
-                tmpFile.deleteFile();
-            }
-        });
-    }
-};
 
 const checkStoragePermissions = () => {
     Alloy.Globals.doLog({
@@ -117,7 +83,7 @@ const openCamera = (_mediaType) => {
                         fontSize: 20
                     }
                 });     
-                console.warn('take');            
+                           
                 Ti.Media.takePicture();
             } else {
                 if (isRecording) {
@@ -271,7 +237,7 @@ const openCamera = (_mediaType) => {
                             // release original object      
                             _e = null;
 
-                            listDirectories();
+                            helper.listDirectories();
 
 
                             if (_result.success) {
@@ -316,7 +282,7 @@ const openCamera = (_mediaType) => {
                                             //compressedFile.deleteFile();
                                             compressedFile = null;
 
-                                            emptyDirectories();
+                                            helper.emptyDirectories();
 
                                             cameraOverlayController.hideMessage();
                                         },
@@ -336,7 +302,7 @@ const openCamera = (_mediaType) => {
                                             }); 
                                             //compressedFile.deleteFile();
                                             compressedFile = null;
-                                            emptyDirectories();
+                                            helper.emptyDirectories();
 
                                             cameraOverlayController.hideMessage();
                                         }   
@@ -520,7 +486,6 @@ const configure = () => {
         program: logProgram
     });
     $.versionLabel.text = 'v: ' + Ti.App.version;
-
 };
 
 configure();

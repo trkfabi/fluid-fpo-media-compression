@@ -1,6 +1,7 @@
 const moment = require('alloy/moment');
 const firebaseStorageHelper = require('/helpers/firebaseStorageHelper');
 const alertDialogHelper = require("helpers/alertDialogHelper");
+const helper = require('helpers/helper');
 const logProgram = 'home/postProcess';
 const args = $.args;
 
@@ -12,6 +13,7 @@ let actualItem, foundImages, foundVideos, uploadedItems;
 let copiedUrls = 0, countSuccess = 0, sessionActivity = [];
 
 let state = 'ready'; // uploading , done 
+let loadingWindow = null;
 
 const blinking = Ti.UI.createAnimation({
     opacity: 0.3,
@@ -36,7 +38,8 @@ const doUploadFile = () => {
     let activityItem;
     let postProcessedFile = postProcessedFiles[actualItem];
 
-	let uploadFile = postProcessedFile.type === 'photo' ? postProcessedFile.blob: Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, postProcessedFile.name).read();
+    const uploadFileToDelete = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, postProcessedFile.name);
+	let uploadFile = postProcessedFile.type === 'photo' ? postProcessedFile.blob: uploadFileToDelete.read();
     let fileSize = null;
     let fileSizeUnit = '';
 
@@ -55,21 +58,25 @@ const doUploadFile = () => {
         fileSize = fileSize.toFixed(2);
         fileSizeUnit = 'mb';
     }
-    
-    firebaseStorageHelper.upload({
-        data: uploadFile,
-        name: postProcessedFile.name,
-        callback: _fbResult => {
-            
-            if (_fbResult.success) {
-                Alloy.Globals.doLog({
-                    text: 'Upload success: ' + JSON.stringify(_fbResult),
-                    program: logProgram
-                });
-                state = 'done';
-                uploadedItems++;
-    
-                if (postProcessedFile.type === 'photo') {
+
+    saveToGallery(uploadFile, _saveResult => {
+        if( _saveResult.success && uploadFileToDelete) {
+            uploadFileToDelete.deleteFile();
+        }
+
+        firebaseStorageHelper.upload({
+            data: uploadFile,
+            name: postProcessedFile.name,
+            callback: _fbResult => {
+                
+                if (_fbResult.success) {
+                    Alloy.Globals.doLog({
+                        text: 'Upload success: ' + JSON.stringify(_fbResult),
+                        program: logProgram
+                    });
+                    state = 'done';
+                    uploadedItems++;
+        
                     activityItem = {
                         name: postProcessedFile.name,
                         url: _fbResult.data.publicUrl,
@@ -77,81 +84,72 @@ const doUploadFile = () => {
                         size: fileSize + ' ' + fileSizeUnit,
                         type: postProcessedFile.type,
                         date: moment().format("MMM D, LTS"),
-                        videothumbnail: '/images/videofile.png',
+                        thumbnail: postProcessedFile.type === 'photo'? '/images/photofile.png':  '/images/videofile.png',
                         status: 'success'
                     };
+    
+                    sessionActivity.push(activityItem);
+        
+                    activity.push(activityItem);
+                    Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+                    Alloy.Globals.activityHistory = activity;
+        
+                    actualItem++;
+                    if (actualItem < postProcessedFiles.length) {
+                        return doUploadFile();
+                    }
+        
+                    doEndUploading();                
                 } else {
+                    Alloy.Globals.doLog({
+                        text: 'Upload error: ' + JSON.stringify(_fbResult),
+                        program: logProgram
+                    });
+        
+                    if (postProcessedFiles.length === 1) {
+                        state = 'error';
+                        Ti.UI.Clipboard.clearText();
+        
+                        $.messagesLabel.color = $.messagesLabel.errorColor;
+                        $.messagesLabel.text = 'Error!\nCould not upload file.'
+                        
+                        $.retakeButton.enabled = true;
+                        
+                        activityIndicator.hide();
+                        $.uploadButton.remove(activityIndicator);
+                        $.uploadButton.enabled = true;
+                        $.uploadButton.title = 'Retry'; 
+                    } else {
+                        state = 'done';
+                    }
+        
                     activityItem = {
                         name: postProcessedFile.name,
-                        url:  _fbResult.data.publicUrl,
+                        url: '',
                         file: postProcessedFile.url,
                         size: fileSize + ' ' + fileSizeUnit,
                         type: postProcessedFile.type,
                         date: moment().format("MMM D, LTS"),
-                        videothumbnail: '/images/videofile.png',
-                        status: 'success' 
-                    };                
-                }
-    
-                sessionActivity.push(activityItem);
-    
-                activity.push(activityItem);
-                Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-                Alloy.Globals.activityHistory = activity;
-    
-                actualItem++;
-                if (actualItem < postProcessedFiles.length) {
-                    return doUploadFile();
-                }
-    
-                doEndUploading();                
-            } else {
-                Alloy.Globals.doLog({
-                    text: 'Upload error: ' + JSON.stringify(_fbResult),
-                    program: logProgram
-                });
-    
-                if (postProcessedFiles.length === 1) {
-                    state = 'error';
-                    Ti.UI.Clipboard.clearText();
-    
-                    $.messagesLabel.color = $.messagesLabel.errorColor;
-                    $.messagesLabel.text = 'Error!\nCould not upload file.'
+                        thumbnail: postProcessedFile.type === 'photo'? '/images/photofile.png':  '/images/videofile.png',
+                        status: 'error' 
+                    }; 
+        
+                    activity.push(activityItem);
+                    Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
+                    Alloy.Globals.activityHistory = activity;    
                     
-                    $.retakeButton.enabled = true;
-                    
-                    activityIndicator.hide();
-                    $.uploadButton.remove(activityIndicator);
-                    $.uploadButton.enabled = true;
-                    $.uploadButton.title = 'Retry'; 
-                } else {
-                    state = 'done';
+                    actualItem++;
+                    if (actualItem < postProcessedFiles.length) {
+                        return doUploadFile();
+                    }
+        
+                    doEndUploading();  
                 }
-    
-                activityItem = {
-                    name: postProcessedFile.name,
-                    url: '',
-                    file: postProcessedFile.url,
-                    size: fileSize + ' ' + fileSizeUnit,
-                    type: postProcessedFile.type,
-                    date: moment().format("MMM D, LTS"),
-                    videothumbnail: '/images/videofile.png',
-                    status: 'error' 
-                }; 
-    
-                activity.push(activityItem);
-                Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
-                Alloy.Globals.activityHistory = activity;    
-                
-                actualItem++;
-                if (actualItem < postProcessedFiles.length) {
-                    return doUploadFile();
-                }
-    
-                doEndUploading();  
             }
-        }
+        });
     });
+    
+    
 };
 
 function doEndUploading() {
@@ -181,6 +179,31 @@ function doEndUploading() {
         }
     });
 }
+
+function saveToGallery(_blob, onComplete) {
+    Ti.Media.saveToPhotoGallery(
+        _blob, 
+        {
+            success: _saveResult => {
+                Alloy.Globals.doLog({
+                    text: 'saveToGallery Success: ' + JSON.stringify(_saveResult),
+                    program: logProgram
+                });  
+                onComplete && onComplete(_saveResult);                                          
+                
+            },
+            error: _saveResult => {
+                Alloy.Globals.doLog({
+                    text: 'saveToGallery Error: ' + JSON.stringify(_saveResult),
+                    program: logProgram
+                });                                                   
+                onComplete && onComplete(_saveResult);
+            }   
+        }                                      
+    );
+}
+
+
 function onResume() {
     console.warn('onResume');
     Ti.App.removeEventListener('resume', onResume);
@@ -254,6 +277,11 @@ const configure = () => {
         text: 'configure()',
         program: logProgram
     });    
+    loadingWindow = alertDialogHelper.createTemporalMessage({
+        duration: 0,
+        message: 'Processing files...'
+    });
+    
     $.retakeButton.enabled = false;
     $.uploadButton.enabled = false;
     postProcessedFiles = [];
@@ -303,21 +331,35 @@ function processItem(_items, _totalItems) {
             // handle write error
             console.error('Error: could not write video data to a file '+filename);
         }
-        
+        var targetFilename = 'movie_' + moment().format('YYYYMMDDhhmmssSSS') + '_compressed.mp4';
+        var targetFilePath  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, targetFilename);
+       
         if(OS_IOS) {
             Ti.Media.exportVideo({
-                url: outputFile.nativePath,
-                quality: "medium"
+                url: outputFile.nativePath,   
+                targetPath:  targetFilePath.nativePath, 
+                bitRate: Alloy.Globals.videoBitRate,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                watermark: moment().format("YYYY-MM-DD HH:mm:ss"),
+                fps: Alloy.Globals.videoFPS,
+                width: 0, // 0 to use original width
+                height: 0 // 0 to use original height
             });
             Ti.Media.addEventListener('exportvideo:completed', function videoCompleted(_e) {
+                Alloy.Globals.doLog({
+                    text: 'exportvideo:completed: '+JSON.stringify(_e),
+                    program: logProgram
+                });                   
                 Ti.Media.removeEventListener('exportvideo:completed', videoCompleted);
                 postProcessedFile = {
                     blob: null,
-                    name: filename,
+                    name: targetFilename,
                     url: _e.url,
                     type: 'video'
                 };
                 postProcessedFiles.push(postProcessedFile);
+
+                outputFile.deleteFile();
+                outputFile = null;
 
                 actualItem ++;
                 if (actualItem < _totalItems) {
@@ -327,21 +369,36 @@ function processItem(_items, _totalItems) {
                 doEndProcessing();
             });
         } else {
-            postProcessedFile = {
-                blob: _e.media,
-                name: filename,
-                url: outputFile.nativePath,
-                type: 'video'
-            };                
-            postProcessedFiles.push(postProcessedFile);
-            actualItem ++;
-            if (actualItem < _totalItems) {
-                return processItem(_items, _totalItems);
-            } 
-            
-            doEndProcessing();
+            var targetName = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, "compressed_video.mp4").nativePath.slice(7);  //remove "file://"
+
+            const AndroidVideoCompression = require('com.inzori.androidvideocompression');
+            AndroidVideoCompression.compressVideo({
+                url: outputFile.nativePath, 
+                targetPath: targetName,
+                quality: 'VERY_HIGH',
+                //bitRate: Alloy.Globals.videoBitRate,  // 20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+                watermark: moment().format("YYYY-MM-DD HH:mm:ss")       
+            });
+            AndroidVideoCompression.addEventListener('android_compression_result', function videoCompleted(_result) {
+                AndroidVideoCompression.removeEventListener('android_compression_result', videoCompleted);
+                postProcessedFile = {
+                    blob: _e.media,
+                    name: filename,
+                    url: outputFile.nativePath,
+                    type: 'video'
+                };                
+                postProcessedFiles.push(postProcessedFile);
+                outputFile.deleteFile();
+                outputFile = null;
+                actualItem ++;
+                if (actualItem < _totalItems) {
+                    return processItem(_items, _totalItems);
+                } 
+                
+                doEndProcessing();                   
+            });
         }
-        outputFile = null;
+        
 
         
     } else if(_e.mediaType === 'public.image') {
@@ -355,26 +412,63 @@ function processItem(_items, _totalItems) {
             return;
         }        
         //let isLandscape = _e.media.width > _e.media.height;
-        let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
-        let newW = Alloy.Globals.photoDesiredSize;
-        let newH = newW * ratio;
+        let ratio = _e.media.width < _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
+        let newH = Alloy.Globals.photoDesiredSize;
+        let newW = newH * ratio;
         let resizedImage = _e.media.imageAsResized(newW, newH);
+        resizedImage = resizedImage.imageAsCompressed(Alloy.Globals.photoCompressionRatio);
+
+        Alloy.Globals.doLog({
+            text: 'Create watermark',
+            program: logProgram
+        });    
+        
+        let auxView = Ti.UI.createView({
+            height:newH,
+            width: newW
+        });
+        let auxImageView = Ti.UI.createImageView({
+            height: newH, 
+            width: newW, 
+            image: resizedImage
+        });
+        let auxTimestamp = Ti.UI.createLabel({
+            text: moment().format("YYYY-MM-DD HH:mm:ss"),
+            height: Ti.UI.SIZE,
+            width: Ti.UI.SIZE,
+            backgroundColor: '#000000',
+            textAlign: 'left',
+            color: '#FFFFFF',
+            font: {
+                fontSize: 20
+            },
+            top: 0,
+            left: 0, 
+            zIndex: 10               
+        });
+        auxView.add(auxImageView);
+        auxView.add(auxTimestamp);   
+        var _blob = auxView.toImage(null, false) ;            
+        console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
 
         var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
-        var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
-        if (!outputFile.write(resizedImage)) {
+        var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);                
+        
+        if (!outputFile.write(_blob)) {
             // handle write error
             console.error('Error: could not write photo data to a file');
-        }               
+        }                
 
         postProcessedFile = {
             name: filename,
-            blob: resizedImage,
+            blob: _blob,
             url: outputFile.nativePath,
             type: 'photo'
         };   
         postProcessedFiles.push(postProcessedFile);    
         
+        _blob = null;
+
         actualItem ++;
         if (actualItem < _totalItems) {
             return processItem(_items, _totalItems);
@@ -413,8 +507,13 @@ function doEndProcessing() {
     $.scrollableView.visible = true;
     $.retakeButton.enabled = true;
     $.uploadButton.enabled = true;     
+
+    if (loadingWindow) {
+        loadingWindow.close();
+        loadingWindow = null;
+    }
 }
-configure();
+//configure();
 
 const onUploadButtonClick = () => {
     Alloy.Globals.doLog({
@@ -424,6 +523,7 @@ const onUploadButtonClick = () => {
     if (state === 'done') {
         // retake
         args.onRetake && args.onRetake();
+        helper.emptyDirectories();
         Ti.App.removeEventListener('resume', onResume);
         $.win.close();
     } else {
@@ -463,6 +563,7 @@ const onRetakeButtonClick = () => {
         });        
     } else {
         args.onRetake && args.onRetake();
+        helper.emptyDirectories();
         Ti.App.removeEventListener('resume', onResume);
         $.win.close();
     }
@@ -476,7 +577,8 @@ $.win.addEventListener('open', ()=>{
     Alloy.Globals.doLog({
         text: 'openControllers: ' +args.openControllers.length,
         program: logProgram
-    });        
+    }); 
+    configure();       
 });
 
 $.win.addEventListener('close', ()=>{

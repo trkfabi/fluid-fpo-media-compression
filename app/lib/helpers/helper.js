@@ -87,30 +87,18 @@ var helper = (function () {
                         text: 'Upload success: ' + JSON.stringify(_fbResult),
                         program: logProgram
                     });
-                    
-                    if (postProcessedFile.type === 'photo') {
-                        activityItem = {
-                            name: postProcessedFile.name,
-                            url: _fbResult.publicUrl,
-                            file: postProcessedFile.url,
-                            size: fileSize + ' ' + fileSizeUnit,
-                            type: postProcessedFile.type,
-                            date: moment().format("MMM D, LTS"),
-                            videothumbnail: '/images/videofile.png',
-                            status: 'success'
-                        };
-                    } else {
-                        activityItem = {
-                            name: postProcessedFile.name,
-                            url:  _fbResult.publicUrl,
-                            file: postProcessedFile.url,
-                            size: fileSize + ' ' + fileSizeUnit,
-                            type: postProcessedFile.type,
-                            date: moment().format("MMM D, LTS"),
-                            videothumbnail: '/images/videofile.png',
-                            status: 'success' 
-                        };                
-                    }
+    
+                    activityItem = {
+                        name: postProcessedFile.name,
+                        url: _fbResult.publicUrl,
+                        file: postProcessedFile.url,
+                        size: fileSize + ' ' + fileSizeUnit,
+                        type: postProcessedFile.type,
+                        date: moment().format("MMM D, LTS"),
+                        thumbnail: postProcessedFile.type === 'photo'? '/images/photofile.png':  '/images/videofile.png',
+                        status: 'success'
+                    };
+                
                     _parms.onSuccess && _parms.onSuccess({
                         item: activityItem
                     });
@@ -128,7 +116,7 @@ var helper = (function () {
                         size: fileSize + ' ' + fileSizeUnit,
                         type: postProcessedFile.type,
                         date: moment().format("MMM D, LTS"),
-                        videothumbnail: '/images/videofile.png',
+                        thumbnail: postProcessedFile.type === 'photo'? '/images/photofile.png':  '/images/videofile.png',
                         status: 'error' 
                     }; 
                     _parms.onError && _parms.onError({
@@ -223,11 +211,11 @@ var helper = (function () {
                 program: logProgram
             });    
 
-            let ratio = _e.media.width > _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
-            let newW = Alloy.Globals.photoDesiredSize;
-            let newH = newW * ratio;
+            let ratio = _e.media.width < _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
+            let newH = Alloy.Globals.photoDesiredSize;
+            let newW = newH * ratio;
             let resizedImage = _e.media.imageAsResized(newW, newH);
-            resizedImage = resizedImage.imageAsCompressed(0.1);
+            resizedImage = resizedImage.imageAsCompressed(Alloy.Globals.photoCompressionRatio);
 
             Alloy.Globals.doLog({
                 text: 'Create watermark',
@@ -286,10 +274,70 @@ var helper = (function () {
         }    
     };
 
+    const listDirectories = () => {
+        Alloy.Globals.doLog({
+            text: 'listDirectories()',
+            program: logProgram
+        }); 
+        // let tempDirectory = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
+        // if (tempDirectory.isDirectory()) {
+        //     let filesInDirectory = tempDirectory.getDirectoryListing();
+        //     Alloy.Globals.doLog({
+        //         text: 'tempDirectory: '+JSON.stringify(filesInDirectory),
+        //         program: logProgram
+        //     }); 
+        // }
+        //if ( OS_IOS) {
+            let appDirectory = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
+            if (appDirectory.isDirectory()) {
+                let filesInDirectory = appDirectory.getDirectoryListing();
+                Alloy.Globals.doLog({
+                    text: 'appDirectory: '+JSON.stringify(filesInDirectory),
+                    program: logProgram
+                }); 
+            }   
+        //} 
+    };
+    const emptyDirectories = () => {
+        Alloy.Globals.doLog({
+            text: 'emptyDirectories()',
+            program: logProgram
+        }); 
+        // let tempDirectory = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
+        // if (tempDirectory.isDirectory()) {
+        //     let filesInDirectory = tempDirectory.getDirectoryListing();
+        //     filesInDirectory.forEach(tmpFileName => {
+        //         let tmpFile = OS_IOS ? Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, tmpFileName): Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, tmpFileName);
+        //         if (tmpFile.exists() && tmpFile.isFile()){
+        //             Alloy.Globals.doLog({
+        //                 text: 'tempDirectory: '+tmpFileName+ ' removed.',
+        //                 program: logProgram
+        //             }); 
+        //             tmpFile.deleteFile();
+        //         }
+        //     });
+        // }
+        let appDirectory = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory);
+        if (appDirectory.isDirectory()) {
+            let filesInDirectory = appDirectory.getDirectoryListing();
+            filesInDirectory.forEach(tmpFileName => {
+                let tmpFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, tmpFileName);
+                if (tmpFile.exists() && tmpFile.isFile()){
+                    Alloy.Globals.doLog({
+                        text: 'appDirectory: '+tmpFileName+ ' removed.',
+                        program: logProgram
+                    }); 
+                    tmpFile.deleteFile();
+                }
+            });
+        }        
+    };
     return {
         checkCameraPermission,
         uploadFile,
-        processMedia
+        processMedia,
+        listDirectories,
+        emptyDirectories
     };
 })();
 

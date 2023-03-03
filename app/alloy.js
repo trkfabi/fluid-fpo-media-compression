@@ -12,8 +12,8 @@ To use the app with multiple select and uploading set:
 */
 
 // CONFIGURATION OPTIONS ///////////////////////////////
-Alloy.Globals.allowMulitpleFiles = false;
-Alloy.Globals.onlySaveToGallery = true;
+Alloy.Globals.allowMulitpleFiles = true;
+Alloy.Globals.onlySaveToGallery = false;
 ////////////////////////////////////////////////////////
 
 Alloy.Globals.videoQualityPropertyName = 'fops:videoquality';
@@ -22,7 +22,8 @@ Alloy.Globals.videoFPSPropertyName = 'fops:videofps';
 
 // CUSTOMIZATION
 Alloy.Globals.defaultUploadFolder = 'fopsupload';
-Alloy.Globals.photoDesiredSize = 640;
+Alloy.Globals.photoDesiredSize = 1080;
+Alloy.Globals.photoCompressionRatio = 0.6; // 0 - 1 (low - high)
 
 // console.warn('qualities:');
 // console.warn('Ti.Media.QUALITY_HIGH: '+ Ti.Media.QUALITY_HIGH);
@@ -31,9 +32,9 @@ Alloy.Globals.photoDesiredSize = 640;
 // console.warn('Ti.Media.QUALITY_IFRAME_1280x720: '+ Ti.Media.QUALITY_IFRAME_1280x720);
 // console.warn(JSON.stringify(Ti.Media.getSupportedFormats()));
 
-Alloy.Globals.videoQuality = Ti.App.Properties.getInt(Alloy.Globals.videoQualityPropertyName, Ti.Media.QUALITY_IFRAME_1280x720);
-Alloy.Globals.videoBitRate = Ti.App.Properties.getInt(Alloy.Globals.videoBitRatePropertyName, 500000);  // in bits per second.  20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
-Alloy.Globals.videoFPS = Ti.App.Properties.getInt(Alloy.Globals.videoFPSPropertyName, 30);
+Alloy.Globals.videoQuality = Ti.Media.QUALITY_IFRAME_1280x720; //Ti.App.Properties.getInt(Alloy.Globals.videoQualityPropertyName, Ti.Media.QUALITY_IFRAME_960x540);
+Alloy.Globals.videoBitRate = 2000000; //Ti.App.Properties.getInt(Alloy.Globals.videoBitRatePropertyName, 2000000);  // in bits per second.  20 ~ 512kb (10 secs) ,  1250000 ~ 1.7mb (10 secs)
+Alloy.Globals.videoFPS = 30; //Ti.App.Properties.getInt(Alloy.Globals.videoFPSPropertyName, 30);
 ////////////////////////////////////////////////////////
 
 // GENERIC STUFF
