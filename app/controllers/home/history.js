@@ -24,7 +24,7 @@ const configure = () => {
                 selectionStyle: 0
             },
             bindItemPicture: {
-                image: item.thumbnail
+                image: item.status === 'success' && item.type == 'photo' ? item.url: item.thumbnail,
             },
             bindItemTimestamp: {
                 text: item.date
