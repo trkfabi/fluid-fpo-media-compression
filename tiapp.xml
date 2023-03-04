@@ -2,7 +2,7 @@
 <ti:app xmlns:ti="http://ti.appcelerator.org">
 	<id>com.fluidmarket.mediacompression</id>
 	<name>FOPs Upload</name>
-	<version>1.0.3.5</version>
+	<version>1.0.3.6</version>
 	<publisher>not specified</publisher>
 	<url>http://inzori.com</url>
 	<description/>

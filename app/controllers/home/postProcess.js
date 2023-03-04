@@ -60,9 +60,6 @@ const doUploadFile = () => {
     }
 
     saveToGallery(uploadFile, _saveResult => {
-        if( _saveResult.success && uploadFileToDelete) {
-            uploadFileToDelete.deleteFile();
-        }
 
         firebaseStorageHelper.upload({
             data: uploadFile,
@@ -93,7 +90,11 @@ const doUploadFile = () => {
                     activity.push(activityItem);
                     Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
                     Alloy.Globals.activityHistory = activity;
-        
+
+                    if( _saveResult.success && uploadFileToDelete) {
+                        uploadFileToDelete.deleteFile();
+                    }
+
                     actualItem++;
                     if (actualItem < postProcessedFiles.length) {
                         return doUploadFile();
@@ -138,6 +139,10 @@ const doUploadFile = () => {
                     Ti.App.Properties.setList(Alloy.Globals.activityHistoryPropertyName, activity);
                     Alloy.Globals.activityHistory = activity;    
                     
+                    if( _saveResult.success && uploadFileToDelete) {
+                        uploadFileToDelete.deleteFile();
+                    }
+
                     actualItem++;
                     if (actualItem < postProcessedFiles.length) {
                         return doUploadFile();
@@ -411,12 +416,6 @@ function processItem(_items, _totalItems) {
             doEndProcessing();            
             return;
         }        
-        //let isLandscape = _e.media.width > _e.media.height;
-        let ratio = _e.media.width < _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
-        let newH = Alloy.Globals.photoDesiredSize;
-        let newW = newH * ratio;
-        let resizedImage = _e.media.imageAsResized(newW, newH);
-        resizedImage = resizedImage.imageAsCompressed(Alloy.Globals.photoCompressionRatio);
 
         Alloy.Globals.doLog({
             text: 'Create watermark',
@@ -424,13 +423,13 @@ function processItem(_items, _totalItems) {
         });    
         
         let auxView = Ti.UI.createView({
-            height:newH,
-            width: newW
+            height:_e.media.height,
+            width: _e.media.width
         });
         let auxImageView = Ti.UI.createImageView({
-            height: newH, 
-            width: newW, 
-            image: resizedImage
+            height: _e.media.height, 
+            width: _e.media.width, 
+            image: _e.media
         });
         let auxTimestamp = Ti.UI.createLabel({
             text: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -440,7 +439,7 @@ function processItem(_items, _totalItems) {
             textAlign: 'left',
             color: '#FFFFFF',
             font: {
-                fontSize: 20
+                fontSize: 50
             },
             top: 0,
             left: 0, 
@@ -448,20 +447,27 @@ function processItem(_items, _totalItems) {
         });
         auxView.add(auxImageView);
         auxView.add(auxTimestamp);   
-        var _blob = auxView.toImage(null, false) ;            
-        console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
+        var _blob = auxView.toImage(null, false) ;           
 
-        var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
+        let ratio = _blob.width < _blob.height ? _blob.width/ _blob.height: _blob.height/ _blob.width;
+        let newH = Alloy.Globals.photoDesiredSize;
+        let newW = newH * ratio;
+
+        let resizedImage = _blob.imageAsResized(newW, newH);
+        resizedImage = resizedImage.imageAsCompressed(Alloy.Globals.photoCompressionRatio);
+
+        const extension = resizedImage.mimeType === 'images/png' ? '.png' : '.jpg';
+        var filename = `photo_${moment().format('YYYYMMDDhhmmssSSS')}${extension}`;
         var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);                
         
-        if (!outputFile.write(_blob)) {
+        if (!outputFile.write(resizedImage)) {
             // handle write error
             console.error('Error: could not write photo data to a file');
         }                
 
         postProcessedFile = {
             name: filename,
-            blob: _blob,
+            blob: resizedImage,
             url: outputFile.nativePath,
             type: 'photo'
         };   

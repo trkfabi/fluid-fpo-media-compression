@@ -211,25 +211,19 @@ var helper = (function () {
                 program: logProgram
             });    
 
-            let ratio = _e.media.width < _e.media.height ? _e.media.width/ _e.media.height: _e.media.height/ _e.media.width;
-            let newH = Alloy.Globals.photoDesiredSize;
-            let newW = newH * ratio;
-            let resizedImage = _e.media.imageAsResized(newW, newH);
-            resizedImage = resizedImage.imageAsCompressed(Alloy.Globals.photoCompressionRatio);
-
             Alloy.Globals.doLog({
                 text: 'Create watermark',
                 program: logProgram
             });    
             
             let auxView = Ti.UI.createView({
-                height:newH,
-                width: newW
+                height:_e.media.height,
+                width: _e.media.width
             });
             let auxImageView = Ti.UI.createImageView({
-                height: newH, 
-                width: newW, 
-                image: resizedImage
+                height: _e.media.height, 
+                width: _e.media.width, 
+                image: _e.media
             });
             let auxTimestamp = Ti.UI.createLabel({
                 text: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -239,7 +233,7 @@ var helper = (function () {
                 textAlign: 'left',
                 color: '#FFFFFF',
                 font: {
-                    fontSize: 20
+                    fontSize: 50
                 },
                 top: 0,
                 left: 0, 
@@ -248,14 +242,23 @@ var helper = (function () {
             auxView.add(auxImageView);
             auxView.add(auxTimestamp);   
             var _blob = auxView.toImage(null, false) ;            
-            console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
+            //console.warn('resizedWatermarked: w: '+_blob.width+' h: '+_blob.height + ' size: '+_blob.size);
 
-            var filename = 'photo_' + moment().format('YYYYMMDDhhmmssSSS') + '.png';
+            let ratio = _blob.width < _blob.height ? _blob.width/ _blob.height: _blob.height/ _blob.width;
+            let newH = Alloy.Globals.photoDesiredSize;
+            let newW = newH * ratio;
+            let resizedImage = _blob.imageAsResized(newW, newH);
+            resizedImage = resizedImage.imageAsCompressed(Alloy.Globals.photoCompressionRatio);
+
+
+            const extension = resizedImage.mimeType === 'images/png' ? '.png' : '.jpg';
+            var filename = `photo_${moment().format('YYYYMMDDhhmmssSSS')}${extension}`;
+            
             var outputFile  = OS_IOS ? 
             Ti.Filesystem.getFile(Ti.Filesystem.tempDirectory, filename):
             Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);                
             
-            if (!outputFile.write(_blob)) {
+            if (!outputFile.write(resizedImage)) {
                 // handle write error
                 console.error('Error: could not write photo data to a file');
                                 
