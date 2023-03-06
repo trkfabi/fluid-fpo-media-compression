@@ -28,7 +28,10 @@ const application = (function () {
 		});
 	};
 
-
+	const onMemoryWarning = _e => {
+		console.warn(JSON.stringify(_e));
+	};
+	
 	const start = () => {
 		Alloy.Globals.doLog({
 			type: logType,
@@ -52,7 +55,7 @@ const application = (function () {
 		// OS_IOS && Ti.App.addEventListener("pause", onPaused);
 		// Ti.App.addEventListener("resume", onResume);
 		// Ti.App.addEventListener("close", onClose);
-		// Ti.App.addEventListener("memorywarning", onMemoryWarning);
+		Ti.App.addEventListener("memorywarning", onMemoryWarning);
 		Ti.App.addEventListener("uncaughtException", onUncaughtException);
 	};
 

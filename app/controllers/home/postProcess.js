@@ -14,6 +14,7 @@ let copiedUrls = 0, countSuccess = 0, sessionActivity = [];
 
 let state = 'ready'; // uploading , done 
 let loadingWindow = null;
+let idleInterval;
 
 const blinking = Ti.UI.createAnimation({
     opacity: 0.3,
@@ -34,7 +35,13 @@ const doUploadFile = () => {
     Alloy.Globals.doLog({
         text: 'doUploadFile() actualItem: ' +actualItem,
         program: logProgram
-    });       
+    });   
+    
+    idleInterval = setInterval(() => {
+        Ti.App.idleTimerDisabled = false;
+        Ti.App.idleTimerDisabled = true;
+    },20000);
+
     let activityItem;
     let postProcessedFile = postProcessedFiles[actualItem];
 
@@ -183,6 +190,9 @@ function doEndUploading() {
             $.uploadButton.title = 'Take another'; 
         }
     });
+
+    Ti.App.idleTimerDisabled = false;
+    clearInterval(idleInterval);
 }
 
 function saveToGallery(_blob, onComplete) {
@@ -277,11 +287,17 @@ function copyToClipboard(_parms) {
 
 }
 
+
 const configure = () => {
     Alloy.Globals.doLog({
         text: 'configure()',
         program: logProgram
     });    
+    idleInterval = setInterval(() => {
+        Ti.App.idleTimerDisabled = false;
+        Ti.App.idleTimerDisabled = true;
+    },20000);
+
     loadingWindow = alertDialogHelper.createTemporalMessage({
         duration: 0,
         message: 'Processing files...'
@@ -330,12 +346,18 @@ function processItem(_items, _totalItems) {
             doEndProcessing();            
             return;
         }
+
         var filename = 'movie_' + moment().format('YYYYMMDDhhmmssSSS') + '.mov';
         var outputFile  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, filename);
+
         if (!outputFile.write(_e.media)) {
             // handle write error
             console.error('Error: could not write video data to a file '+filename);
+            doEndProcessing();
+            return;                
         }
+
+        
         var targetFilename = 'movie_' + moment().format('YYYYMMDDhhmmssSSS') + '_compressed.mp4';
         var targetFilePath  = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, targetFilename);
        
@@ -509,17 +531,21 @@ function doEndProcessing() {
             $.scrollableView.addView(imageView); 
         }                                   
     });
-
+    
     $.scrollableView.visible = true;
     $.retakeButton.enabled = true;
-    $.uploadButton.enabled = true;     
-
+    if(postProcessedFiles.length>0) {
+        $.uploadButton.enabled = true;     
+    }
     if (loadingWindow) {
         loadingWindow.close();
         loadingWindow = null;
     }
+    clearInterval(idleInterval);
+    Ti.App.idleTimerDisabled = false;
+
 }
-//configure();
+
 
 const onUploadButtonClick = () => {
     Alloy.Globals.doLog({

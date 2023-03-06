@@ -358,9 +358,9 @@ const openGallery = () => {
         allowEditing: false,
         autohide: true,
         allowMultiple: Alloy.Globals.allowMulitpleFiles,
-        mediaTypes: Alloy.Globals.allowVideoFiles ? [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO]: [Titanium.Media.MEDIA_TYPE_PHOTO], 
-        allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
-        videoQuality: Ti.Media.QUALITY_MEDIUM,
+        mediaTypes: [Titanium.Media.MEDIA_TYPE_PHOTO], //Alloy.Globals.allowVideoFiles ? [Titanium.Media.MEDIA_TYPE_PHOTO, Titanium.Media.MEDIA_TYPE_VIDEO]: [Titanium.Media.MEDIA_TYPE_PHOTO], 
+        //allowTranscoding: false,	// if this is false, videoQuality does not matter (full quality)
+        //videoQuality: Ti.Media.QUALITY_MEDIUM,
         success: _e => {
             Alloy.Globals.doLog({
                 text: 'Gallery success: ' + JSON.stringify(_e),
@@ -390,7 +390,10 @@ const openGallery = () => {
                     if (validVideos > 0) {
                         anyValid = true;
                     }
-                };  
+                }; 
+                if (!anyValid && _e.media) {
+                    anyValid = true;
+                }
                 if (anyValid) {
                     appNavigation.openPostProcess({
                         data: _e,

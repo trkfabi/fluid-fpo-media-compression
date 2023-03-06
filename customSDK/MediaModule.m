@@ -3,6 +3,8 @@
  * Copyright TiDev, Inc. 04/07/2022-Present. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
+ *
+ * WARNING: This is generated code. Modify at your own risk and without support.
  */
 #ifdef USE_TI_MEDIA
 
@@ -1756,87 +1758,150 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
     return formatMutableArray;
 }
 
+- (void)setIdleTimerDisabled:(NSNumber *)value
+{
+  [UIApplication sharedApplication].idleTimerDisabled = [TiUtils boolValue:value];
+}
+
+- (NSNumber *)idleTimerDisabled
+{
+  return NUMBOOL([UIApplication sharedApplication].idleTimerDisabled);
+}
+
 - (void) exportVideo:(id)args {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSDictionary);
-    NSLog(@"[INFO] exportVideo() - url: %@ - bitRate: %@ - watermark: %@", [args objectForKey:@"url"], [args objectForKey:@"bitRate"], [args objectForKey:@"watermark"]);
+    NSLog(@"[INFO] exportVideo() - url: %@ - bitRate: %@ - fps: %@ - watermark: %@ - target: %@", [args objectForKey:@"url"], [args objectForKey:@"bitRate"], [args objectForKey:@"fps"], [args objectForKey:@"watermark"], [args objectForKey:@"targetPath"]);
     
-    NSURL *mediaURL = [NSURL URLWithString:[[args objectForKey:@"url"] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    NSURL *mediaURL = [NSURL URLWithString:[[args objectForKey:@"url"] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+    
+    NSURL *nsoutputURL = [NSURL URLWithString:[[args objectForKey:@"targetPath"] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+    
     NSNumber *bitRate = [args objectForKey:@"bitRate"];
+    float fps = [TiUtils floatValue:[args objectForKey:@"fps"]];
     NSNumber *width = [args objectForKey:@"width"];
     NSNumber *height = [args objectForKey:@"height"];
     NSString *watermark = [args objectForKey:@"watermark"];
-    /*
-    NSString *preset = (NSString *)[args objectForKey:@"preset"];
-    NSString *presetName = AVAssetExportPresetLowQuality;
-    if ([preset isEqualToString:@"AVAssetExportPresetMediumQuality"]) {
-        presetName = AVAssetExportPresetMediumQuality;
-    } else if ([preset isEqualToString:@"AVAssetExportPresetHighestQuality"]) {
-        presetName = AVAssetExportPresetHighestQuality;
-    } else if ([preset isEqualToString:@"AVAssetExportPreset960x540"]) {
-        presetName = AVAssetExportPreset960x540;
-    } else if ([preset isEqualToString:@"AVAssetExportPreset1280x720"]) {
-        presetName = AVAssetExportPreset1280x720;
-    }
-
-    NSLog(@"[INFO] presetName: %@", presetName);
-    */
-
-    NSString *tmpDirectory = [[NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES] path];
-
-    NSFileManager *manager = [NSFileManager defaultManager];
-    NSString *outputURL = [tmpDirectory stringByAppendingPathComponent:@"editedVideo"];
-    [manager createDirectoryAtPath:outputURL withIntermediateDirectories:YES attributes:nil error:nil];
-    NSString *fileName = [[[NSString stringWithFormat:@"%f", CFAbsoluteTimeGetCurrent()] stringByReplacingOccurrencesOfString:@"." withString:@"-"] stringByAppendingString:@".MOV"];
-    outputURL = [outputURL stringByAppendingPathComponent:fileName];
     
-    NSURL *nsoutputURL = [NSURL fileURLWithPath:outputURL];
-    
-    [self convertVideoToLowQuailtyWithInputURL:mediaURL
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+//    });
+
+    [self convertVideoToLowQualityWithInputURL:mediaURL
                                      outputURL:nsoutputURL
                                        bitRate:bitRate
+                                           fps:fps
                                          width:width
                                         height:height
                                      watermark:watermark];
     
-    /*
-    NSString *mediaType = (NSString *)kUTTypeMovie;
-     
-    AVURLAsset *videoAsset = [AVURLAsset URLAssetWithURL:mediaURL options:nil];
-    
-    AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:videoAsset presetName:presetName];
-    exportSession.outputURL = [NSURL fileURLWithPath:outputURL isDirectory:NO];
-    exportSession.outputFileType = AVFileTypeQuickTimeMovie;
-    exportSession.shouldOptimizeForNetworkUse = YES;
-
-    NSMutableDictionary *dictionary = [TiUtils dictionaryWithCode:0 message:nil];
-    [dictionary setObject:mediaType forKey:@"mediaType"];
-
-    [exportSession exportAsynchronouslyWithCompletionHandler:^{
-      switch (exportSession.status) {
-      // If the export succeeds, return the URL of the proposed tmp-directory
-      case AVAssetExportSessionStatusCompleted:
-             [dictionary setObject:[NSURL URLWithString:outputURL] forKey:@"url"];
-              [self fireEvent:@"exportvideo:completed" withObject:dictionary];
-        break;
-      // If it fails, return the original image URL
-      default:
-              [dictionary setObject:mediaURL forKey:@"url"];
-               [self fireEvent:@"exportvideo:completed" withObject:dictionary];
-        break;
-      }
-    }];
-     */
 }
 
-- (void)convertVideoToLowQuailtyWithInputURL:(NSURL*) inputURL
+
+
+// this is the watermark stuff
+   /*
+ @try {
+
+    CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    CVPixelBufferLockBaseAddress( pixelBuffer, 0 );
+    EAGLContext *eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    CIContext *ciContext = [CIContext contextWithEAGLContext:eaglContext options:@{kCIContextWorkingColorSpace : [NSNull null]} ];
+
+    UIImage *img = [self imageFromText:watermark];
+    CIImage *filteredImage = [[CIImage alloc] initWithCGImage:img.CGImage];
+    
+    [ciContext render:filteredImage toCVPixelBuffer:pixelBuffer bounds:[filteredImage extent] colorSpace:CGColorSpaceCreateDeviceRGB()];
+    
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+     
+  }
+  @catch (NSException *exception) {
+     NSLog(@"[INFO] error: %@", exception.reason);
+
+  }
+  @finally {
+     
+  }
+   */
+///////
+// Create a Core Image context
+/*
+if (!sampleBuffer) {
+    NSLog(@"[INFO] no SAMPLEBUFFER");
+}
+NSLog(@"[INFO] create wm");
+CIContext *ciContext = [CIContext contextWithOptions:nil];
+if (!ciContext) {
+    NSLog(@"[INFO] no ci context");
+} else {
+    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    if (imageBuffer) {
+        CVPixelBufferLockBaseAddress(imageBuffer, kCVPixelBufferLock_ReadOnly);
+        
+        // Create a CIImage from the pixel buffer
+        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:imageBuffer];
+        
+        // Create a text layer with the timestamp
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        NSString *timestampString = [dateFormatter stringFromDate:[NSDate date]];
+        
+        UIFont *font = [UIFont systemFontOfSize:8.0];
+        UIColor *color = [UIColor whiteColor];
+        
+        NSDictionary *textAttributes = @{ NSFontAttributeName : font,
+                                          NSForegroundColorAttributeName : color };
+        
+        NSAttributedString *attributedTimestampString = [[NSAttributedString alloc] initWithString:timestampString attributes:textAttributes];
+        
+        NSLog(@"[INFO] string %@", attributedTimestampString);
+        UIImage *attributedImage = [self imageFromAttributedString: attributedTimestampString];
+        
+        NSLog(@"[INFO]  got image");
+        
+        CIImage *textImage = [[CIImage alloc] initWithCGImage:attributedImage.CGImage options:nil];
+        
+        NSLog(@"[INFO] got ciimage");
+        if (!textImage){
+            NSLog(@"[INFO]  NOOOO ciimage");
+        } else{
+            
+            // Calculate the position for the text layer
+            CGFloat textWidth = textImage.extent.size.width;
+            CGFloat textHeight = textImage.extent.size.height;
+            CGFloat positionX = 0; //ciImage.extent.size.width - textWidth - 10;
+            CGFloat positionY = 0;
+            
+            // Create a transform to position the text layer
+            CGAffineTransform transform = CGAffineTransformIdentity;
+            transform = CGAffineTransformTranslate(transform, positionX, positionY);
+            
+            // Apply the transform to the text layer
+            textImage = [textImage imageByApplyingTransform:transform];
+            
+            // Add the text layer as an overlay on the sample buffer
+            [ciContext render:textImage toCVPixelBuffer:imageBuffer];
+            CVPixelBufferUnlockBaseAddress(imageBuffer, kCVPixelBufferLock_ReadOnly);
+        }
+        
+        NSLog(@"[INFO]  end wm");
+    }                 // Get the sample buffer's image buffer and pixel buffer attributes
+}
+///
+
+*/
+
+
+- (void)convertVideoToLowQualityWithInputURL:(NSURL*) inputURL
                                    outputURL:(NSURL*) outputURL
                                      bitRate:(NSNumber*) bitRate
+                                         fps:(float) fps
                                        width:(NSNumber*) width
                                        height:(NSNumber*) height
                                    watermark:(NSString*) watermark
                                 
 {
-    NSLog(@"[INFO] convertVideoToLowQuailtyWithInputURL()");
+    NSLog(@"[INFO] convertVideoToLowQualityWithInputURL()");
     NSString *mediaType = (NSString *)kUTTypeMovie;
     NSMutableDictionary *dictionary = [TiUtils dictionaryWithCode:0 message:nil];
     [dictionary setObject:mediaType forKey:@"mediaType"];
@@ -1844,6 +1909,7 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
     //setup video writer
     AVAsset *videoAsset = [[AVURLAsset alloc] initWithURL:inputURL options:nil];
     AVAssetTrack *videoTrack = [[videoAsset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
+
     CGSize videoSize = videoTrack.naturalSize;
     if ([width intValue] != 0) {
         videoSize.width = [width intValue];
@@ -1853,7 +1919,8 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
     }
     NSDictionary *videoWriterCompressionSettings =  [NSDictionary dictionaryWithObjectsAndKeys:bitRate, AVVideoAverageBitRateKey, nil];
 
-    NSDictionary *videoWriterSettings = [NSDictionary dictionaryWithObjectsAndKeys:AVVideoCodecH264, AVVideoCodecKey, videoWriterCompressionSettings, AVVideoCompressionPropertiesKey, [NSNumber numberWithFloat:videoSize.width], AVVideoWidthKey, [NSNumber numberWithFloat:videoSize.height], AVVideoHeightKey, nil];
+    NSDictionary *videoWriterSettings = [NSDictionary dictionaryWithObjectsAndKeys:AVVideoCodecTypeH264, AVVideoCodecKey, videoWriterCompressionSettings, AVVideoCompressionPropertiesKey, [NSNumber numberWithFloat:videoSize.width], AVVideoWidthKey, [NSNumber numberWithFloat:videoSize.height], AVVideoHeightKey, nil];
+
 
     AVAssetWriterInput* videoWriterInput = [AVAssetWriterInput
                                              assetWriterInputWithMediaType:AVMediaTypeVideo
@@ -1863,7 +1930,7 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
     videoWriterInput.transform = videoTrack.preferredTransform;
 
     AVAssetWriter *videoWriter = [[AVAssetWriter alloc] initWithURL:outputURL fileType:AVFileTypeQuickTimeMovie error:nil];
-
+    videoWriter.shouldOptimizeForNetworkUse = YES;
     [videoWriter addInput:videoWriterInput];
 
     //setup video reader
@@ -1886,16 +1953,11 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
 
     //setup audio reader
     AVAssetTrack* audioTrack = [[videoAsset tracksWithMediaType:AVMediaTypeAudio] objectAtIndex:0];
-
     AVAssetReaderOutput *audioReaderOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:audioTrack outputSettings:nil];
-
     AVAssetReader *audioReader = [AVAssetReader assetReaderWithAsset:videoAsset error:nil];
-
     [audioReader addOutput:audioReaderOutput];
 
     [videoWriter startWriting];
-
-    //start writing from video reader
     [videoReader startReading];
 
     [videoWriter startSessionAtSourceTime:kCMTimeZero];
@@ -1908,47 +1970,18 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
          while ([videoWriterInput isReadyForMoreMediaData]) {
 
              CMSampleBufferRef sampleBuffer;
-
+             
              if ([videoReader status] == AVAssetReaderStatusReading &&
                  (sampleBuffer = [videoReaderOutput copyNextSampleBuffer])) {
 
-                 // test to add text
-                    
-                  @try {
-            
-                     CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-                     CVPixelBufferLockBaseAddress( pixelBuffer, 0 );
-                     EAGLContext *eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-                     CIContext *ciContext = [CIContext contextWithEAGLContext:eaglContext options:@{kCIContextWorkingColorSpace : [NSNull null]} ];
-
-                     UIImage *img = [self imageFromText:watermark];
-                     CIImage *filteredImage = [[CIImage alloc] initWithCGImage:img.CGImage];
-                     
-                     [ciContext render:filteredImage toCVPixelBuffer:pixelBuffer bounds:[filteredImage extent] colorSpace:CGColorSpaceCreateDeviceRGB()];
-                     
-                     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
-                      
-                   }
-                   @catch (NSException *exception) {
-                      NSLog(@"[INFO] error: %@", exception.reason);
-
-                   }
-                   @finally {
-                      
-                   }
-
-                 /////////
-                 ///
-                 [videoWriterInput appendSampleBuffer:sampleBuffer];
-                 CFRelease(sampleBuffer);
+                    [videoWriterInput appendSampleBuffer:sampleBuffer];
+                    CFRelease(sampleBuffer);
              }
 
              else {
-
                  [videoWriterInput markAsFinished];
 
                  if ([videoReader status] == AVAssetReaderStatusCompleted) {
-
                      //start writing from audio reader
                      [audioReader startReading];
 
@@ -1977,6 +2010,10 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
                                      [videoWriter finishWritingWithCompletionHandler:^(){
                                          [dictionary setObject:outputURL forKey:@"url"];
                                           [self fireEvent:@"exportvideo:completed" withObject:dictionary];
+//                                         
+//                                         dispatch_async(dispatch_get_main_queue(), ^{
+//                                             [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+//                                         });
                                      }];
 
                                  }
@@ -1990,6 +2027,20 @@ MAKE_SYSTEM_PROP(VIDEO_REPEAT_MODE_ONE, VideoRepeatModeOne);
          }
      }
     ];
+}
+
+- (UIImage *)imageFromAttributedString:(NSAttributedString *)text
+{
+    UIGraphicsBeginImageContextWithOptions(text.size, NO, 0.0);
+    
+    // draw in context
+    [text drawAtPoint:CGPointMake(0.0, 0.0)];
+    
+    // transfer image
+    UIImage *image = [UIGraphicsGetImageFromCurrentImageContext() imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    UIGraphicsEndImageContext();
+    
+    return image;
 }
 
 -(UIImage *)imageFromText:(NSString *)text
